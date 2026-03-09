@@ -2,16 +2,34 @@ import streamlit as st
 import base64
 import os
 
+# 1. PAGE CONFIG
 st.set_page_config(
     page_title="M-FLO | Healthcare", 
     page_icon="⚕️", 
     layout="wide"
 )
 
-# --- REFINED PROFESSIONAL CSS ---
+# 2. DEFINE GLOBAL VARIABLES (Fixes the NameError)
+user_name = "Dr. John Doe" 
+
+def get_base64(file_path):
+    if os.path.exists(file_path):
+        with open(file_path, "rb") as f:
+            return base64.b64encode(f.read()).decode()
+    return ""
+
+logo_b64 = get_base64("logo_medical.png")
+
+# 3. INITIALIZE SESSION STATE
+if "auth" not in st.session_state:
+    st.session_state.auth = False
+if "current_page" not in st.session_state:
+    st.session_state.current_page = "Homepage"
+
+# 4. REFINED PROFESSIONAL CSS
 st.markdown("""
     <style>
-    /* 1. Standard Website Scaling */
+    /* Standard Website Scaling */
     html, body, [class*="css"] {
         font-family: 'Inter', sans-serif;
         font-size: 16px !important;
@@ -20,93 +38,58 @@ st.markdown("""
 
     .stApp { background: #FDFDFD !important; }
 
-    /* 2. SEARCH BAR FIX: NO CLIPPING */
-    /* We target the container to force vertical centering */
+    /* SEARCH BAR FIX: NO CLIPPING & PERFECT CENTERING */
     .stTextInput > div > div {
         display: flex !important;
         align-items: center !important;
-        height: 52px !important; /* Professional standard height */
+        justify-content: center !important;
+        height: 50px !important; 
         background-color: #F4F4F4 !important;
         border-radius: 12px !important;
-        border: 1px solid #E0E0E0 !important;
-        transition: all 0.2s ease;
+        border: 1.5px solid #E0E0E0 !important;
+        padding: 0 !important;
     }
 
     .stTextInput > div > div > input {
-        height: 100% !important;
-        font-size: 16px !important;
         text-align: center !important;
-        padding: 0 20px !important;
+        font-size: 16px !important;
         background: transparent !important;
         border: none !important;
-        box-shadow: none !important;
+        padding: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        line-height: normal !important; /* Prevents vertical cutting */
     }
 
-    .stTextInput > div > div:focus-within {
-        border-color: #93C572 !important;
-        background-color: #FFFFFF !important;
-        box-shadow: 0 0 0 3px rgba(147, 197, 114, 0.1) !important;
-    }
-
-    /* 3. SIDEBAR: PROFESSIONAL NAV */
-    section[data-testid="stSidebar"] {
-        width: 300px !important;
-    }
-
-    .sidebar-label {
-        color: #888;
-        font-size: 12px;
-        font-weight: 700;
-        margin: 20px 0 8px 15px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
+    /* SIDEBAR STYLING */
+    section[data-testid="stSidebar"] { width: 300px !important; }
+    
     .stButton > button {
-        height: 48px !important;
+        height: 45px !important;
         font-size: 16px !important;
-        font-weight: 500 !important;
-        border-radius: 10px !important;
+        border-radius: 8px !important;
         text-align: left !important;
         padding-left: 15px !important;
-        margin-bottom: 4px !important;
-        border: 1px solid transparent !important;
     }
 
-    .stButton > button:hover {
-        background-color: #F1F8F1 !important;
-        color: #93C572 !important;
-        border-color: #93C572 !important;
-    }
-
-    /* 4. DASHBOARD CARDS */
+    /* CARDS */
     div[data-testid="stVerticalBlockBorderWrapper"] {
-        border-radius: 20px !important;
-        padding: 30px !important;
+        border-radius: 15px !important;
+        padding: 25px !important;
         background: white !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
         border: 1px solid #EEE !important;
     }
-
-    /* 5. TITLES */
-    h1 { font-size: 36px !important; font-weight: 800 !important; }
-    h2 { font-size: 24px !important; font-weight: 700 !important; }
-    h3 { font-size: 18px !important; font-weight: 600 !important; }
-
-    /* Top bar adjustment */
-    .main .block-container { padding-top: 100px !important; }
     </style>
     """, unsafe_allow_html=True)
 
-# Logic for Auth
-if "auth" not in st.session_state:
-    st.session_state.auth = False
-
+# 5. APP LOGIC
 if not st.session_state.auth:
-    # Minimalist Login
+    # --- LOGIN PAGE ---
     st.markdown("<br><br>", unsafe_allow_html=True)
+    logo_html = f'<img src="data:image/png;base64,{logo_b64}" style="width:200px;">' if logo_b64 else "<h2>M-FLO</h2>"
+    
     with st.container(border=True):
-        st.markdown("<h2 style='text-align:center;'>M-FLO Access</h2>", unsafe_allow_html=True)
+        st.markdown(f"<div style='text-align:center;'>{logo_html}</div>", unsafe_allow_html=True)
         u = st.text_input("Physician ID")
         p = st.text_input("Security Key", type="password")
         if st.button("Sign In", use_container_width=True):
@@ -117,32 +100,26 @@ else:
     # --- TOP NAV ---
     t1, t2, t3 = st.columns([1, 2, 1])
     with t2:
-        # Centered Search (Fixed Clipping)
-        st.text_input("search", placeholder="Search patients or records...", label_visibility="collapsed")
+        # Centered Search Bar
+        st.text_input("search", placeholder="Search patients or records...", label_visibility="collapsed", key="top_search")
     with t3:
+        # Variable is now defined globally, so no NameError here
         st.markdown(f"<p style='text-align:right; font-weight:600; padding-top:10px;'>{user_name}</p>", unsafe_allow_html=True)
 
     # --- SIDEBAR ---
     with st.sidebar:
-        st.markdown("### M-FLO")
-        st.markdown('<p class="sidebar-label">Menu</p>', unsafe_allow_html=True)
-        st.button("📊 Dashboard", use_container_width=True)
-        st.button("👥 Patients", use_container_width=True)
-        st.button("📅 Appointments", use_container_width=True)
+        if logo_b64:
+            st.image(f"data:image/png;base64,{logo_b64}", width=150)
+        st.markdown("### Navigation")
+        if st.button("📊 Dashboard", use_container_width=True): st.session_state.current_page = "Homepage"
+        if st.button("👥 Patients", use_container_width=True): st.session_state.current_page = "Patients"
         st.divider()
         if st.button("Logout", use_container_width=True):
             st.session_state.auth = False
             st.rerun()
 
-    # --- CONTENT ---
-    st.markdown("<h1>Dashboard Overview</h1>", unsafe_allow_html=True)
-    
-    c1, c2 = st.columns([2, 1], gap="medium")
-    with c1:
-        with st.container(border=True):
-            st.markdown("### Clinical Performance")
-            st.line_chart({"Metric": [10, 25, 20, 40, 35, 50]})
-    with c2:
-        with st.container(border=True):
-            st.markdown("### Notifications")
-            st.write("Welcome to the refined workspace.")
+    # --- MAIN CONTENT ---
+    st.title(f"{st.session_state.current_page}")
+    with st.container(border=True):
+        st.write("The search bar and text scaling have been balanced for a standard website feel.")
+        st.line_chart({"data": [1, 5, 2, 6, 3, 7]})
