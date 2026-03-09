@@ -37,15 +37,8 @@ if "current_page" not in st.session_state:
     st.session_state.current_page = "Homepage"
 if "active_chat" not in st.session_state:
     st.session_state.active_chat = list(MESSAGES_DB.keys())[0]
-if "dark_mode" not in st.session_state:
-    st.session_state.dark_mode = False
 
-# 4. CSS: NO-SCROLL + THEME + ANIMATIONS
-bg_style = "radial-gradient(circle at top right, #0A1F1C, #050C0B)" if st.session_state.dark_mode else "radial-gradient(circle at top right, #F9FFF9, #FDFDFD)"
-card_bg = "#122B26" if st.session_state.dark_mode else "#FFFFFF"
-text_color = "#E0E0E0" if st.session_state.dark_mode else "#124D41"
-border_color = "#1E3D37" if st.session_state.dark_mode else "#E0E0E0"
-
+# 4. FIXED THEME & ANIMATION CSS
 st.markdown(f"""
     <style>
     /* PREVENT SCROLLING ON LOGIN ONLY */
@@ -54,9 +47,15 @@ st.markdown(f"""
         height: 100vh;
     }}
 
+    /* PISTACHIO THEME BACKGROUND */
     .stApp {{
-        background: {bg_style} !important;
-        transition: background 0.5s ease;
+        background: radial-gradient(circle at top right, #F9FFF9, #FDFDFD) !important;
+    }}
+
+    html, body, [class*="css"] {{
+        font-family: 'Inter', sans-serif;
+        font-size: 16px !important;
+        color: #124D41;
     }}
 
     /* HEARTBEAT ANIMATION */
@@ -84,26 +83,26 @@ st.markdown(f"""
 
     .login-card {{
         border: 6px solid #93C572; border-radius: 80px; padding: 60px 100px; 
-        background-color: {card_bg}; text-align: center; max-width: 850px;
+        background-color: #FFFFFF; text-align: center; max-width: 850px;
         box-shadow: 0 20px 50px rgba(147, 197, 114, 0.15);
     }}
 
     /* SEARCH BAR FIX */
     .stTextInput > div > div {{
-        height: 50px !important; background-color: {card_bg} !important;
-        border-radius: 12px !important; border: 1.5px solid {border_color} !important;
+        height: 50px !important; background-color: #FFFFFF !important;
+        border-radius: 12px !important; border: 1.5px solid #E0E0E0 !important;
     }}
     .stTextInput > div > div > input {{
         text-align: center !important; line-height: 50px !important; 
-        color: {text_color} !important;
+        color: #124D41 !important;
     }}
 
     /* BUTTON MOTIONS (SPRING) */
     .stButton > button {{
         height: 48px !important; border-radius: 10px !important;
         transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
-        background-color: {card_bg} !important; color: {text_color} !important;
-        border: 1px solid {border_color} !important;
+        background-color: #FFFFFF !important; color: #124D41 !important;
+        border: 1px solid #E0E0E0 !important;
     }}
     .stButton > button:hover {{
         border-color: #93C572 !important; color: #93C572 !important;
@@ -132,7 +131,7 @@ if not st.session_state.auth:
         <div class="login-card">
             {logo_html}
             <div style="color: #93C572; font-weight: 800; font-size: 30px; margin-top: 10px;">67+2 PODCAST</div>
-            <div style="color: {text_color}; font-size: 90px; font-weight: 900; margin: 0; letter-spacing: -5px;">M-FLO</div>
+            <div style="color: #124D41; font-size: 90px; font-weight: 900; margin: 0; letter-spacing: -5px;">M-FLO</div>
         </div>
     """, unsafe_allow_html=True)
 
@@ -148,7 +147,7 @@ if not st.session_state.auth:
     st.markdown('</div>', unsafe_allow_html=True)
 
 else:
-    # --- DASHBOARD (SCROLLABLE) ---
+    # --- DASHBOARD ---
     t1, t2, t3 = st.columns([1, 2, 1])
     with t2:
         sq = st.text_input("search", placeholder="Search functions...", label_visibility="collapsed", key="g_search")
@@ -161,10 +160,6 @@ else:
 
     with st.sidebar:
         if logo_b64: st.image(f"data:image/png;base64,{logo_b64}", use_container_width=True)
-        theme_btn = "☀️ Light Mode" if st.session_state.dark_mode else "🌙 Dark Mode"
-        if st.button(theme_btn, use_container_width=True):
-            st.session_state.dark_mode = not st.session_state.dark_mode
-            st.rerun()
         st.divider()
         if st.button("🏠 Homepage", use_container_width=True): st.session_state.current_page = "Homepage"
         if st.button("👥 Patients", use_container_width=True): st.session_state.current_page = "Patients"
@@ -190,8 +185,7 @@ else:
             with st.container(height=400, border=True):
                 st.markdown(f"**Chat: {st.session_state.active_chat}**")
                 for msg in MESSAGES_DB[st.session_state.active_chat]:
-                    bubble_bg = "#1E3D37" if st.session_state.dark_mode else "#F1F8F1"
-                    st.markdown(f'<div style="background:{bubble_bg}; padding:12px; border-radius:10px; margin-bottom:8px; border:1px solid {border_color};">{msg}</div>', unsafe_allow_html=True)
+                    st.markdown(f'<div style="background:#F1F8F1; padding:12px; border-radius:10px; margin-bottom:8px; border:1px solid #E0E0E0;">{msg}</div>', unsafe_allow_html=True)
             st.text_input("Reply...", key="chat_in", label_visibility="collapsed")
             st.button("Send ➔")
 
