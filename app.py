@@ -41,57 +41,64 @@ if "auth" not in st.session_state:
     st.session_state.auth = False
 if "current_page" not in st.session_state:
     st.session_state.current_page = "Homepage"
-if "active_chat" not in st.session_state:
-    st.session_state.active_chat = list(MESSAGES_DB.keys())[0]
 
-# 4. BRUTE-FORCE ALIGNMENT CSS
+# 4. ENHANCED MOTION & DESIGN CSS
 st.markdown(f"""
     <style>
-    /* KILL STREAMLIT TOP SPACE */
+    /* KEYFRAME ANIMATIONS */
+    @keyframes slideUp {{
+        from {{ opacity: 0; transform: translateY(30px); }}
+        to {{ opacity: 1; transform: translateY(0); }}
+    }}
+    
+    @keyframes softFade {{
+        from {{ opacity: 0; }}
+        to {{ opacity: 1; }}
+    }}
+
+    /* GLOBAL STYLING */
     [data-testid="stHeader"] {{ display: none; }}
     
     [data-testid="stAppViewContainer"] {{
-        overflow: {"hidden" if not st.session_state.auth else "auto"};
-        height: 100vh !important;
         background: radial-gradient(circle at top right, #F9FFF9, #FDFDFD) !important;
+        overflow: {"hidden" if not st.session_state.auth else "auto"};
     }}
 
-    /* CENTERED LOGIN BOX LOGIC */
+    /* CENTERED LOGIN ALIGNMENT */
     .main .block-container {{
         padding: {"0" if not st.session_state.auth else "2rem"} !important;
-        margin: 0 !important;
         height: 100vh;
         display: {"flex" if not st.session_state.auth else "block"};
         align-items: center;
         justify-content: center;
+        animation: slideUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
     }}
 
+    /* ANIMATED LOGIN CARD */
     div[data-testid="stForm"] {{
         border: 4px solid #93C572 !important; 
         border-radius: 40px !important; 
         padding: 40px !important; 
         background-color: #FFFFFF !important; 
         width: 480px !important;
-        box-shadow: 0 15px 40px rgba(0,0,0,0.05) !important;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.07) !important;
         text-align: center;
+        transition: transform 0.3s ease;
+    }}
+    div[data-testid="stForm"]:hover {{
+        transform: translateY(-5px);
     }}
 
     .mflo-header {{ color: #124D41; font-size: 55px; font-weight: 900; margin: 0; letter-spacing: -3px; line-height: 1; }}
     .podcast-header {{ color: #93C572; font-weight: 800; font-size: 20px; margin-bottom: 5px; }}
+    .user-greeting {{ color: #124D41; font-size: 20px; font-weight: 700; padding-top: 10px; }}
 
-    /* TOP BAR GREETING */
-    .user-greeting {{
-        color: #124D41;
-        font-size: 20px;
-        font-weight: 700;
-        margin: 0;
-        padding-top: 10px;
-    }}
-
+    /* INPUTS & BUTTONS MOTION */
     .stTextInput > div > div {{
         background-color: #f8f9fa !important;
         border: 1.5px solid #93C572 !important;
-        border-radius: 10px !important;
+        border-radius: 12px !important;
+        transition: all 0.3s ease;
     }}
     
     .stButton > button {{
@@ -99,6 +106,22 @@ st.markdown(f"""
         color: #124D41 !important;
         font-weight: 700 !important;
         border: none !important;
+        border-radius: 12px !important;
+        height: 48px !important;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    }}
+    .stButton > button:hover {{
+        transform: scale(1.03) !important;
+        box-shadow: 0 8px 20px rgba(147, 197, 114, 0.3) !important;
+    }}
+
+    /* SIDEBAR HOVER EFFECT */
+    [data-testid="stSidebar"] button {{
+        transition: 0.3s !important;
+    }}
+    [data-testid="stSidebar"] button:hover {{
+        padding-left: 20px !important;
+        background-color: #F0F9F0 !important;
     }}
     </style>
     """, unsafe_allow_html=True)
@@ -115,10 +138,10 @@ def run_global_search(query):
 
 # 6. APP FLOW
 if not st.session_state.auth:
-    # --- LOGIN VIEW ---
+    # --- ANIMATED LOGIN PAGE (PRESERVED) ---
     with st.form("login_form", clear_on_submit=False):
         if logo_b64:
-            st.markdown(f'<div style="text-align:center;"><img src="data:image/png;base64,{logo_b64}" style="width:110px; margin-bottom:15px;"></div>', unsafe_allow_html=True)
+            st.markdown(f'<div style="text-align:center;"><img src="data:image/png;base64,{logo_b64}" style="width:110px; margin-bottom:15px; animation: softFade 2s;"></div>', unsafe_allow_html=True)
         st.markdown('<p class="podcast-header">67+2 PODCAST</p>', unsafe_allow_html=True)
         st.markdown('<h1 class="mflo-header">M-FLO</h1>', unsafe_allow_html=True)
         st.markdown('<p style="color:#888; font-size:11px; margin-bottom:20px;">Medi-Flow Orchestrator v2.1 | Secure Portal</p>', unsafe_allow_html=True)
@@ -126,8 +149,7 @@ if not st.session_state.auth:
         u = st.text_input("Physician ID", placeholder="Enter ID", label_visibility="collapsed")
         p = st.text_input("Security Key", type="password", placeholder="Security Key", label_visibility="collapsed")
 
-        submit = st.form_submit_button("AUTHENTICATE SYSTEM")
-        if submit:
+        if st.form_submit_button("AUTHENTICATE SYSTEM"):
             if u == "doctor1" and p == "mediflow2026":
                 st.session_state.auth = True
                 st.rerun()
@@ -136,9 +158,8 @@ if not st.session_state.auth:
         st.markdown('<p style="color:#93C572; font-size:10px; margin-top:10px;">Auth: MD-Level Encrypted Access Only</p>', unsafe_allow_html=True)
 
 else:
-    # --- TOP BAR (GREETING + SEARCH) ---
+    # --- DASHBOARD VIEW ---
     top_l, top_c, top_r = st.columns([1, 2, 1])
-    
     with top_l:
         st.markdown(f'<p class="user-greeting">Hello, {user_name} 👋</p>', unsafe_allow_html=True)
     
@@ -151,7 +172,7 @@ else:
                     st.session_state.current_page = m['page']
                     st.rerun()
 
-    # --- SIDEBAR NAVIGATION (PRESERVED) ---
+    # SIDEBAR
     with st.sidebar:
         if logo_b64: st.image(f"data:image/png;base64,{logo_b64}", use_container_width=True)
         st.divider()
@@ -159,21 +180,15 @@ else:
         if st.button("👥 Patients", use_container_width=True): st.session_state.current_page = "Patients"
         if st.button("📅 Reservation", use_container_width=True): st.session_state.current_page = "Reservation"
         if st.button("✉️ Messages", use_container_width=True): st.session_state.current_page = "Messages"
-        if st.button("🤝 Community", use_container_width=True): st.session_state.current_page = "Community"
         st.divider()
         if st.button("🚪 Logout", use_container_width=True):
             st.session_state.auth = False
             st.rerun()
 
-    # Dynamic Page Loading
-    st.markdown(f"<h1>{st.session_state.current_page}</h1>", unsafe_allow_html=True)
+    # CONTENT AREA
+    st.markdown(f"<div style='animation: slideUp 0.6s ease-out;'><h1>{st.session_state.current_page}</h1></div>", unsafe_allow_html=True)
     
     if st.session_state.current_page == "Homepage":
         st.line_chart({"bpm": [72, 75, 78, 74, 80]})
-    
     elif st.session_state.current_page == "Reservation":
-        st.write("### Upcoming Appointments")
         st.table(RESERVATIONS_DB)
-        
-    elif st.session_state.current_page == "Messages":
-        st.write("Messages module loaded.")
