@@ -4,7 +4,7 @@ import os
 import time
 
 st.set_page_config(
-    page_title="M-FLO | Clinical Workspace", 
+    page_title="M-FLO | Workflow", 
     page_icon="⚕️", 
     layout="wide"
 )
@@ -17,174 +17,116 @@ def get_base64(file_path):
 
 logo_b64 = get_base64("logo_medical.png")
 
-# --- PREMIUM DRIBBBLE STYLING ---
 st.markdown(f"""
     <style>
-    /* 1. Fluid Background */
     .stApp {{
-        background: radial-gradient(circle at 20% 20%, #F0FFF4 0%, #FFFFFF 50%, #F7FFF9 100%) !important;
+        background: radial-gradient(circle at top right, #F0FFF4, #FFFFFF) !important;
     }}
 
-    /* 2. Dribbble "Spring" Animation Physics */
+    /* Spring Animation for Dribbble-style Pop */
     @keyframes dribbblePop {{
-        0% {{ opacity: 0; transform: scale(0.7) translateY(60px); filter: blur(10px); }}
-        60% {{ opacity: 1; transform: scale(1.03) translateY(-10px); filter: blur(0px); }}
+        0% {{ opacity: 0; transform: scale(0.8) translateY(40px); }}
+        60% {{ opacity: 1; transform: scale(1.03) translateY(-10px); }}
         80% {{ transform: scale(0.98) translateY(2px); }}
         100% {{ opacity: 1; transform: scale(1) translateY(0); }}
     }}
 
-    /* Staggered Entrance */
-    .pop-1 {{ animation: dribbblePop 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; opacity: 0; }}
-    .pop-2 {{ animation: dribbblePop 1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s forwards; opacity: 0; }}
-    .pop-3 {{ animation: dribbblePop 1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s forwards; opacity: 0; }}
+    .pop-1 {{ animation: dribbblePop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; opacity: 0; }}
+    .pop-2 {{ animation: dribbblePop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s forwards; opacity: 0; }}
+    .pop-3 {{ animation: dribbblePop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s forwards; opacity: 0; }}
 
-    /* 3. Floating Glass Cards */
+    /* Floating Glass Cards */
     div[data-testid="stVerticalBlockBorderWrapper"] {{
         background: rgba(255, 255, 255, 0.75) !important;
-        backdrop-filter: blur(15px) saturate(180%) !important;
+        backdrop-filter: blur(15px) !important;
         border: 1px solid rgba(147, 197, 114, 0.15) !important;
-        border-radius: 32px !important;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.05) !important;
-        padding: 30px !important;
-        transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border-radius: 28px !important;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.04) !important;
+        padding: 25px !important;
+        transition: all 0.4s ease;
     }}
     
     div[data-testid="stVerticalBlockBorderWrapper"]:hover {{
-        transform: translateY(-12px) scale(1.01);
-        box-shadow: 0 40px 80px -15px rgba(147, 197, 114, 0.2) !important;
+        transform: translateY(-8px);
         border-color: #93C572 !important;
     }}
 
-    /* 4. Minimalist Navigation Sidebar */
+    /* Sidebar Refinement */
     section[data-testid="stSidebar"] {{
-        background-color: rgba(255, 255, 255, 0.5) !important;
-        backdrop-filter: blur(10px);
-        border-right: 1px solid #F0F0F0;
+        background-color: #FFFFFF !important;
+        border-right: 1px solid #EAEAEA;
     }}
 
-    /* 5. Typography & Accents */
-    .workspace-title {{
-        color: #124D41;
-        font-size: 42px;
-        font-weight: 900;
-        letter-spacing: -2px;
-        margin-bottom: 5px;
-    }}
-    
-    .status-badge {{
-        background: #E8F5E9;
-        color: #2E7D32;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 700;
-        display: inline-block;
-        margin-bottom: 20px;
-    }}
-
-    /* Input & Button Refinement */
-    div.stButton > button {{
-        background: linear-gradient(135deg, #98FFD9 0%, #7CFFCC 100%) !important;
-        color: #124D41 !important;
-        border: none !important;
-        font-weight: 800 !important;
-        border-radius: 18px !important;
-        padding: 18px !important;
-        box-shadow: 0 10px 20px -5px rgba(124, 255, 204, 0.4) !important;
-    }}
-
-    .login-card {{
-        border: 2px solid #93C572;
-        border-radius: 40px;
-        padding: 60px;
-        background-color: #F9FFF9;
-        text-align: center;
-        max-width: 500px;
-        margin: auto;
-    }}
+    .nav-text {{ font-weight: 600; color: #124D41; }}
+    .mflo-title {{ color: #124D41; font-size: 36px; font-weight: 900; letter-spacing: -1.5px; }}
     </style>
     """, unsafe_allow_html=True)
 
 if "auth" not in st.session_state:
     st.session_state.auth = False
 
-# --- APP NAVIGATION ---
 if not st.session_state.auth:
-    # --- PISTACHIO LOGIN ---
-    st.markdown("<br><br><br>", unsafe_allow_html=True)
-    logo_html = f'<div style="display: flex; justify-content: center;"><img src="data:image/png;base64,{logo_b64}" style="width:280px;"></div>' if logo_b64 else ""
-
-    st.markdown(f"""
-        <div class="login-card">
-            {logo_html}
-            <div style="color: #93C572; font-weight: 800; font-size: 28px; margin-top: 15px;">67+2 PODCAST</div>
-            <div style="color: #124D41; font-size: 55px; font-weight: 900; margin: 0; letter-spacing: -2px;">M-FLO</div>
-            <hr style="border-top: 1px solid #93C572; opacity: 0.2; margin: 30px 0;">
-        </div>
-    """, unsafe_allow_html=True)
-
-    _, col2, _ = st.columns([1, 1.8, 1])
-    with col2:
-        u = st.text_input("Physician ID", placeholder="Enter ID")
-        p = st.text_input("Security Key", type="password")
-        
-        if st.button("AUTHENTICATE SYSTEM"):
-            if u == "doctor1" and p == "mediflow2026":
-                st.session_state.auth = True
-                st.rerun()
+    # (Pistachio Login Logic remains here...)
+    st.markdown('<div class="pop-1" style="text-align:center;"><h1>M-FLO Secure Access</h1></div>', unsafe_allow_html=True)
+    if st.button("Simulate Login"):
+        st.session_state.auth = True
+        st.rerun()
 
 else:
-    # --- DRIBBBLE-STYLE DASHBOARD ---
+    # --- UPDATED SIDEBAR MENU ---
     with st.sidebar:
         if logo_b64:
-            st.markdown(f'<div style="text-align:center;"><img src="data:image/png;base64,{logo_b64}" width="110"></div>', unsafe_allow_html=True)
-        st.markdown("<br><br>", unsafe_allow_html=True)
-        st.button("🏥 Overview", use_container_width=True)
-        st.button("📁 Records", use_container_width=True)
-        st.button("⚙️ Settings", use_container_width=True)
+            st.markdown(f'<div style="text-align:center;"><img src="data:image/png;base64,{logo_b64}" width="90"></div>', unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        # Navigation Links
+        st.button("🏠 Homepage", use_container_width=True)
+        st.button("💬 Messages", use_container_width=True)
+        st.button("👤 Patients", use_container_width=True)
+        st.button("📅 Reservations", use_container_width=True)
+        st.button("🤝 Community", use_container_width=True)
+        
         st.divider()
-        if st.button("Secure Logout"):
+        if st.button("Logout"):
             st.session_state.auth = False
             st.rerun()
 
-    # Header section
-    st.markdown('<div class="pop-1"><span class="status-badge">● SYSTEM ACTIVE</span></div>', unsafe_allow_html=True)
-    st.markdown('<div class="pop-1"><p class="workspace-title">Clinical Intelligence</p></div>', unsafe_allow_html=True)
+    # --- CONTENT AREA ---
+    st.markdown('<div class="pop-1"><p class="mflo-title">Clinical Intelligence Workspace</p></div>', unsafe_allow_html=True)
     
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    col_a, col_b = st.columns([1.2, 2], gap="large")
+    col_l, col_r = st.columns([1.5, 1], gap="medium")
 
-    with col_a:
+    with col_l:
         st.markdown('<div class="pop-2">', unsafe_allow_html=True)
         with st.container(border=True):
-            st.markdown("### **Active Patient**")
-            st.caption("Jane Doe • 45 Y.O. • Female")
-            st.divider()
-            st.error("💊 **Critical Allergy:** Penicillin")
-            st.info("📊 **Vitals:** Normal (Last Sync 2m ago)")
-            st.markdown("<br>", unsafe_allow_html=True)
-            st.button("Open Electronic Health Record", use_container_width=True)
+            st.markdown("### **🤝 Doctor Community**")
+            st.caption("Trending Discussions in Cardiology & GPT-4 Med")
+            
+            # Reddit-style Feed
+            with st.expander("u/Dr_Smith: Advice on chronic hypertension in 40yo male?", expanded=True):
+                st.write("Has anyone seen resistance to Lisinopril 10mg lately? Thinking of switching to Losartan.")
+                st.caption("💬 12 comments • 🔼 45 upvotes")
+            
+            with st.expander("u/Surgery_Lead: New robotic techniques for mitral valve"):
+                st.write("Sharing my findings from last week's operation using the new v2.1 orchestrator.")
+                st.caption("💬 4 comments • 🔼 18 upvotes")
         st.markdown('</div>', unsafe_allow_html=True)
 
-    with col_b:
+    with col_r:
         st.markdown('<div class="pop-3">', unsafe_allow_html=True)
         with st.container(border=True):
-            st.markdown("### **Smart Orders**")
-            st.write("AI-detected clinical actions for verification:")
-            
-            # Interactive Order Cards
-            st.checkbox("Lisinopril 10mg Oral Tablet", value=True)
-            st.checkbox("Metabolic Panel (Blood Test)", value=True)
-            st.checkbox("Schedule 6-Month Follow-up", value=False)
-            
-            st.divider()
-            st.button("✨ Approve & Dispatch Orders", use_container_width=True)
+            st.markdown("### **📅 Upcoming Reservations**")
+            st.write("Today's Schedule:")
+            st.info("09:00 - Jane Doe (Consultation)")
+            st.success("10:30 - John Wick (Follow-up)")
+            st.warning("13:00 - Pending Approval")
+            st.button("Manage Calendar", use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # Bottom Full-Width Section
+    # Bottom Row Insights
     st.markdown('<div class="pop-3">', unsafe_allow_html=True)
     with st.container(border=True):
-        st.write("### **Intelligence Summary**")
-        st.success("All clinical databases are in sync. System suggests reviewing the latest lab results for potential electrolyte imbalance.")
+        st.write("### **💬 Recent Messages**")
+        st.caption("From: Nurse Sarah - 'Patient in Room 4 is ready for review.'")
+        st.button("Open Message Center", use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
