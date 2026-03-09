@@ -4,85 +4,71 @@ import os
 import time
 
 st.set_page_config(
-    page_title="M-FLO | Secure Access Portal", 
+    page_title="M-FLO | Workflow", 
     page_icon="⚕️", 
     layout="wide"
 )
 
-def get_base_base64(file_path):
+def get_base64(file_path):
     if os.path.exists(file_path):
         with open(file_path, "rb") as f:
             return base64.b64encode(f.read()).decode()
     return None
 
-logo_b64 = get_base_base64("logo_medical.png")
+logo_b64 = get_base64("logo_medical.png")
 
 st.markdown(f"""
     <style>
-    .stApp {{ background-color: #FFFFFF !important; }}
+    /* 1. Global Background: Soft Mint Gradient */
+    .stApp {{
+        background: radial-gradient(circle at top right, #F0FFF4, #FFFFFF) !important;
+    }}
 
-    /* ELASTIC BOUNCE ANIMATION (Dribbble Style) */
-    @keyframes elasticEntrance {{
-        0% {{ opacity: 0; transform: scale(0.8) translateY(100px); }}
-        70% {{ transform: scale(1.05) translateY(-10px); }}
+    /* 2. Fluid Spring Animations */
+    @keyframes dribbbleBounce {{
+        0% {{ opacity: 0; transform: scale(0.8) translateY(40px); }}
+        70% {{ transform: scale(1.02) translateY(-5px); }}
         100% {{ opacity: 1; transform: scale(1) translateY(0); }}
     }}
 
-    /* Sidebar Slide-in Bounce */
-    @keyframes sidebarBounce {{
-        0% {{ transform: translateX(-100%); }}
-        100% {{ transform: translateX(0); }}
-    }}
+    .stagger-1 {{ animation: dribbbleBounce 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; opacity: 0; }}
+    .stagger-2 {{ animation: dribbbleBounce 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s forwards; opacity: 0; }}
+    .stagger-3 {{ animation: dribbbleBounce 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s forwards; opacity: 0; }}
 
-    /* Apply Staggered Bounces */
-    .bounce-1 {{ animation: elasticEntrance 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards; opacity: 0; }}
-    .bounce-2 {{ animation: elasticEntrance 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) 0.1s forwards; opacity: 0; }}
-    .bounce-3 {{ animation: elasticEntrance 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) 0.2s forwards; opacity: 0; }}
-    .bounce-4 {{ animation: elasticEntrance 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) 0.3s forwards; opacity: 0; }}
-
-    /* UI Styling */
-    div[data-baseweb="input"], div[data-baseweb="textarea"] {{
-        background-color: #FFFFFF !important;
-        border: 2px solid #93C572 !important;
-        border-radius: 16px !important;
-        transition: all 0.3s ease;
+    /* 3. Floating Glass Cards */
+    div[data-testid="stVerticalBlockBorderWrapper"] {{
+        background: rgba(255, 255, 255, 0.7) !important;
+        backdrop-filter: blur(10px) !important;
+        border: 1px solid rgba(147, 197, 114, 0.2) !important;
+        border-radius: 24px !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03) !important;
+        padding: 20px !important;
+        transition: transform 0.3s ease;
     }}
     
-    div[data-baseweb="input"]:focus-within {{
-        transform: scale(1.02);
-        border-color: #124D41 !important;
+    div[data-testid="stVerticalBlockBorderWrapper"]:hover {{
+        transform: translateY(-5px);
+        border-color: #93C572 !important;
     }}
 
-    .login-card {{
-        border: 3px solid #93C572;
-        border-radius: 40px;
-        padding: 50px;
-        background-color: #F9FFF9;
-        text-align: center;
-        max-width: 500px;
-        margin: auto;
-    }}
-
-    .mflo-header {{ color: #124D41; font-size: 55px; font-weight: 900; margin: 0; }}
-
-    div.stButton > button {{
-        background: linear-gradient(90deg, #98FFD9, #7CFFCC) !important;
-        color: #124D41 !important;
-        border: none !important;
-        font-weight: 800 !important;
-        width: 100%;
-        padding: 15px;
-        border-radius: 14px;
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }}
-    
-    div.stButton > button:hover {{ transform: scale(1.05); }}
-
-    /* Sidebar Theme */
+    /* 4. Minimalist Sidebar */
     section[data-testid="stSidebar"] {{
-        background-color: #F0F4F2 !important;
-        border-right: 1px solid #93C572;
-        animation: sidebarBounce 0.7s cubic-bezier(0.165, 0.84, 0.44, 1);
+        background-color: #FFFFFF !important;
+        border-right: 1px solid #EAEAEA;
+    }}
+
+    /* 5. Inputs and Typography */
+    .mflo-title {{
+        color: #124D41;
+        font-size: 32px;
+        font-weight: 800;
+        letter-spacing: -1px;
+    }}
+
+    div[data-baseweb="textarea"] textarea {{
+        border-radius: 16px !important;
+        border: 1px solid #E0E0E0 !important;
+        background: #F9F9F9 !important;
     }}
     </style>
     """, unsafe_allow_html=True)
@@ -90,67 +76,62 @@ st.markdown(f"""
 if "auth" not in st.session_state:
     st.session_state.auth = False
 
+# --- LOGIC GATING ---
 if not st.session_state.auth:
-    st.markdown("<br><br><br>", unsafe_allow_html=True)
-    logo_html = f'<div style="display: flex; justify-content: center;"><img src="data:image/png;base64,{logo_b64}" style="width:280px;"></div>' if logo_b64 else ""
+    # (Assuming the login code from previous steps remains here)
+    st.title("Please Login")
+    if st.button("Simulate Login"):
+        st.session_state.auth = True
+        st.rerun()
 
-    st.markdown(f"""
-        <div class="login-card">
-            {logo_html}
-            <div style="color: #93C572; font-weight: 800; font-size: 28px; margin-top: 10px;">67+2 PODCAST</div>
-            <div class="mflo-header">M-FLO</div>
-            <hr style="border-top: 2px solid #93C572; opacity: 0.2; margin: 30px 0;">
-        </div>
-    """, unsafe_allow_html=True)
-
-    _, col2, _ = st.columns([1, 1.8, 1])
-    with col2:
-        u = st.text_input("Physician ID", placeholder="Enter ID")
-        p = st.text_input("Security Key", type="password")
-        
-        if st.button("AUTHENTICATE SYSTEM"):
-            if u == "doctor1" and p == "mediflow2026":
-                progress_bar = st.progress(0)
-                for i in range(101):
-                    time.sleep(0.005)
-                    progress_bar.progress(i)
-                st.session_state.auth = True
-                st.rerun()
-    
 else:
+    # --- DASHBOARD LAYOUT ---
     with st.sidebar:
         if logo_b64:
-            st.markdown(f'<div style="text-align:center;"><img src="data:image/png;base64,{logo_b64}" width="120"></div>', unsafe_allow_html=True)
-        st.title("M-FLO v2.1")
-        if st.button("LOGOUT / LOCK"):
+            st.markdown(f'<div style="text-align:center;"><img src="data:image/png;base64,{logo_b64}" width="100"></div>', unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.button("Dashboard")
+        st.button("Patient Files")
+        st.button("Settings")
+        st.divider()
+        if st.button("Logout"):
             st.session_state.auth = False
             st.rerun()
 
-    # HEADER BOUNCE
-    st.markdown('<div class="bounce-1">', unsafe_allow_html=True)
-    st.subheader("⚕️ Patient Consultation Environment")
-    st.markdown('</div>', unsafe_allow_html=True)
+    # Header section
+    st.markdown('<div class="stagger-1"><p class="mflo-title">Clinical Intelligence Workspace</p></div>', unsafe_allow_html=True)
     
-    c1, c2, c3 = st.columns([1, 2, 2])
-    
-    with c1:
-        st.markdown('<div class="bounce-2">', unsafe_allow_html=True)
-        st.markdown("#### Patient Context")
+    col_a, col_b = st.columns([1, 2.5], gap="large")
+
+    with col_a:
+        st.markdown('<div class="stagger-2">', unsafe_allow_html=True)
         with st.container(border=True):
-            st.markdown("### **J. Doe**")
-            st.error("⚠️ ALLERGY: Penicillin")
-            st.warning("⚠️ CONDITION: Hypertension")
+            st.markdown("### **Active Patient**")
+            st.caption("Jane Doe • ID #9921")
+            st.divider()
+            st.error("💊 **Allergy:** Penicillin")
+            st.info("📊 **Last Visit:** 2 days ago")
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.button("View Full Profile", use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-    with c2:
-        st.markdown('<div class="bounce-3">', unsafe_allow_html=True)
-        st.markdown("#### Clinical Interface")
-        notes = st.text_area("Live Transcript", height=350)
-        st.button("EXECUTE ANALYSIS")
+    with col_b:
+        st.markdown('<div class="stagger-3">', unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown("### **Live Consultation**")
+            transcript = st.text_area("Listening to audio...", height=300, placeholder="Transcribed text will appear here...")
+            
+            # Action Row
+            btn_left, btn_right = st.columns(2)
+            with btn_left:
+                st.button("🎙️ Pause Recording", use_container_width=True)
+            with btn_right:
+                st.button("✨ Run AI Analysis", use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-    with c3:
-        st.markdown('<div class="bounce-4">', unsafe_allow_html=True)
-        st.markdown("#### AI-Generated Orders")
-        st.info("Awaiting analysis...")
-        st.markdown('</div>', unsafe_allow_html=True)
+    # Bottom Row: Generated Insights
+    st.markdown('<div class="stagger-3">', unsafe_allow_html=True)
+    with st.container(border=True):
+        st.write("### **AI-Generated Clinical Orders**")
+        st.info("System standby. Start recording to generate orders.")
+    st.markdown('</div>', unsafe_allow_html=True)
