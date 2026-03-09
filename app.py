@@ -9,8 +9,10 @@ st.set_page_config(
     layout="wide"
 )
 
-# 2. GLOBAL DATA & VARIABLES (ALL RESTORED)
+# 2. GLOBAL DATA & VARIABLES (ALL PRESERVED)
 user_name = "Dr. John Doe"
+# UPDATE THIS PATH TO YOUR NEW PNG FILE
+DOCTOR_IMAGE_PATH = "doctor_profile.png" 
 
 DOCTOR_BIO = {
     "title": "Senior Consultant Cardiologist",
@@ -34,6 +36,16 @@ MESSAGES_DB = {
     "Nurse Mike": ["Patient in Room 402 is ready for rounds.", "Vitals are stable."]
 }
 
+# HELPER TO ENCODE PNGs
+def get_base64(file_path):
+    if os.path.exists(file_path):
+        with open(file_path, "rb") as f:
+            return base64.b64encode(f.read()).decode()
+    return ""
+
+logo_b64 = get_base64("logo_medical.png")
+doctor_b64 = get_base64(DOCTOR_IMAGE_PATH)
+
 # 3. SESSION STATE
 if "auth" not in st.session_state:
     st.session_state.auth = False
@@ -46,31 +58,27 @@ if "completed_count" not in st.session_state:
 if "active_chat" not in st.session_state:
     st.session_state.active_chat = list(MESSAGES_DB.keys())[0]
 
-def get_base64(file_path):
-    if os.path.exists(file_path):
-        with open(file_path, "rb") as f:
-            return base64.b64encode(f.read()).decode()
-    return ""
-
-logo_b64 = get_base64("logo_medical.png")
-
 # 4. CSS (MINT THEME + PROFILE DESIGN)
 st.markdown(f"""
     <style>
     @keyframes slideUp {{ from {{ opacity: 0; transform: translateY(20px); }} to {{ opacity: 1; transform: translateY(0); }} }}
     [data-testid="stHeader"] {{ display: none; }}
     
-    /* MINT SIDEBAR */
     [data-testid="stSidebar"] {{
         background-color: #E8F5E9 !important;
         background-image: linear-gradient(180deg, #E8F5E9 0%, #C8E6C9 100%) !important;
     }}
 
-    /* PROFILE & COMMUNITY CARDS */
     .profile-card {{
         background: white; padding: 35px; border-radius: 30px; border: 1px solid #E0E0E0;
         box-shadow: 0 10px 40px rgba(0,0,0,0.04); animation: slideUp 0.6s ease-out;
     }}
+    
+    .profile-img {{
+        width: 120px; height: 120px; border-radius: 30px; 
+        object-fit: cover; border: 3px solid #93C572;
+    }}
+
     .cert-pill {{
         background: #E8F5E9; color: #2E7D32; padding: 6px 14px; border-radius: 20px;
         font-size: 13px; font-weight: 600; display: inline-block; margin: 4px;
@@ -94,7 +102,6 @@ def run_global_search(query):
 
 # 6. APP FLOW
 if not st.session_state.auth:
-    # LOGIN (PRESERVED)
     with st.form("login_form"):
         st.markdown('<h1 style="text-align:center; color:#124D41;">M-FLO</h1>', unsafe_allow_html=True)
         u = st.text_input("Physician ID", placeholder="Enter ID")
@@ -114,7 +121,7 @@ else:
                 if st.button(f"🔍 {m['title']}", key=f"s_{m['title']}"):
                     st.session_state.current_page = m['page']; st.rerun()
 
-    # --- MINT SIDEBAR (ALL FUNCTIONS RESTORED) ---
+    # --- SIDEBAR ---
     with st.sidebar:
         if logo_b64: st.image(f"data:image/png;base64,{logo_b64}", use_container_width=True)
         st.divider()
@@ -131,10 +138,13 @@ else:
         col_main, col_plan = st.columns([2.2, 1], gap="large")
         
         with col_main:
+            # DOCTOR PROFILE WITH PNG PICTURE
+            img_html = f'<img src="data:image/png;base64,{doctor_b64}" class="profile-img">' if doctor_b64 else '<div class="profile-img" style="background:#93C572; display:flex; align-items:center; justify-content:center; color:white; font-size:40px;">👨‍⚕️</div>'
+            
             st.markdown(f"""
                 <div class="profile-card">
                     <div style="display: flex; align-items: center; gap: 25px;">
-                        <div style="width: 110px; height: 110px; background: linear-gradient(135deg, #93C572, #2E7D32); border-radius: 30px; display: flex; align-items: center; justify-content: center; color: white; font-size: 50px;">👨‍⚕️</div>
+                        {img_html}
                         <div>
                             <h1 style="margin:0; color:#124D41;">{user_name}</h1>
                             <p style="color:#93C572; font-weight:700;">{DOCTOR_BIO['title']}</p>
