@@ -19,8 +19,7 @@ DOCTOR_BIO = {
     "title": "Senior Consultant Cardiologist",
     "specialty": "Interventional Cardiology & Electrophysiology",
     "desc": """Dr. John Doe is a world-renowned specialist in structural heart disease with over 15 years of clinical excellence. 
-    He pioneered the use of minimally invasive valve replacements at M-FLO General and currently serves as the Head of Cardiovascular Research. 
-    His work focuses on integrating real-time AI monitoring with patient-centric care models.""",
+    He pioneered the use of minimally invasive valve replacements at M-FLO General and currently serves as the Head of Cardiovascular Research.""",
     "certs": ["MD, Harvard Medical School", "Board Certified in Cardiovascular Disease", "FACC Fellowship", "European Society of Cardiology (ESC) Member"],
     "stats": [
         {"label": "Surgeries performed", "value": "1,200+"},
@@ -34,7 +33,6 @@ COMMUNITY_POSTS = [
     {"user": "u/Heart_Monitor", "title": "M-FLO v2.1 Beta Feedback", "content": "The new UI is much cleaner..."}
 ]
 
-# FIXED THE SYNTAX ERROR HERE (Line 37-40)
 RESERVATIONS_DB = [
     {"Time": "09:00 AM", "Patient": "Alice Tan", "Status": "Confirmed"},
     {"Time": "11:30 AM", "Patient": "Bob Smith", "Status": "Pending"}
@@ -87,30 +85,28 @@ if "daily_tasks" not in st.session_state:
 if "completed_counts" not in st.session_state:
     st.session_state.completed_counts = {}
 
-# 5. CSS (PRESERVED)
+# 5. CSS (PRESERVED + GHOST ICON FIX)
 st.markdown(f"""
     <style>
-    [data-testid="stHeader"] {{ display: none; }}
+    /* PREVIOUS: [data-testid="stHeader"] {{ display: none; }} */
+    /* NEW: Makes the bar invisible but keeps the icon button functional */
+    [data-testid="stHeader"] {{ 
+        background: rgba(0,0,0,0) !important; 
+        color: #124D41 !important;
+    }}
+    
+    /* Ensures the specific arrow button is visible and clickable */
+    [data-testid="stHeader"] button {{
+        background-color: white !important;
+        border-radius: 50% !important;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1) !important;
+        margin-left: 10px !important;
+    }}
+
     [data-testid="stAppViewContainer"] {{
         background: radial-gradient(circle at top right, #F9FFF9, #FDFDFD) !important;
     }}
     
-    .menu-trigger {{
-        position: fixed;
-        top: 20px;
-        left: 20px;
-        z-index: 999;
-        background: white;
-        padding: 10px 15px;
-        border-radius: 12px;
-        border: 1px solid #E0E0E0;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }}
-
     .stat-box {{ 
         background: #F1F8E9; 
         border-radius: 20px; padding: 20px; text-align: center; border: 1px solid #E1EDD8;
@@ -123,7 +119,7 @@ st.markdown(f"""
         background: white; padding: 40px; border-radius: 35px; border: 1px solid #E0E0E0; 
         box-shadow: 0 15px 50px rgba(0,0,0,0.05); margin-top: 10px;
     }}
-    .profile-img {{ width: 140px; height: 140px; border-radius: 30px; object-fit: cover; border: 4px solid #93C572; }}
+    .profile-img {{ width: 140px; height: 140px; border-radius: 30px; object-fit: cover; border: 4px solid #93C572; box-shadow: 0 8px 20px rgba(147, 197, 114, 0.2); }}
     .cert-tag {{ background: #E8F5E9; color: #2E7D32; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; margin: 4px; display: inline-block; border: 1px solid #C8E6C9; }}
     .mini-stat {{ text-align: center; padding: 10px; }}
     .mini-stat-val {{ font-size: 18px; font-weight: 700; color: #124D41; display: block; }}
@@ -147,14 +143,6 @@ if not st.session_state.auth:
             if u == "doctor1" and p == "mediflow2026":
                 st.session_state.auth = True; st.rerun()
 else:
-    # MENU TRIGGER HELPER
-    st.markdown("""
-        <div class="menu-trigger">
-            <span style="font-size:20px;">☰</span>
-            <span style="font-size:12px; color:#666; font-weight:600;">PRESS 'X' TO OPEN MENU</span>
-        </div>
-    """, unsafe_allow_html=True)
-
     # SIDEBAR
     with st.sidebar:
         if logo_b64: st.image(f"data:image/png;base64,{logo_b64}", use_container_width=True)
@@ -168,7 +156,7 @@ else:
         if st.button("🚪 Logout", key="nav_l", use_container_width=True): st.session_state.auth = False; st.rerun()
 
     if st.session_state.current_page == "Homepage":
-        st.markdown(f'<p style="color:#124D41; font-weight:700; font-size:18px; margin-left:100px;">Hello, {user_name} 👋</p>', unsafe_allow_html=True)
+        st.markdown(f'<p style="color:#124D41; font-weight:700; font-size:18px;">Hello, {user_name} 👋</p>', unsafe_allow_html=True)
 
         # STATS ROW
         s1, s2, s3, s4 = st.columns(4)
