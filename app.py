@@ -63,7 +63,7 @@ doctor_b64 = get_base64_from_url(GITHUB_RAW_URL)
 if not doctor_b64:
     doctor_b64 = get_base64("doctor_profile.jpg")
 
-# 4. SESSION STATE (PRESERVED + NEW URGENT PATIENTS)
+# 4. SESSION STATE (PRESERVED)
 if "auth" not in st.session_state:
     st.session_state.auth = False
 if "current_page" not in st.session_state:
@@ -71,7 +71,6 @@ if "current_page" not in st.session_state:
 if "show_alerts" not in st.session_state:
     st.session_state.show_alerts = False
 
-# UPDATED: Added new urgent patients here
 if "urgent_patients" not in st.session_state:
     st.session_state.urgent_patients = [
         {"Room": "302", "Name": "James Wilson", "Issue": "Respiratory Distress / Low O2"},
@@ -86,9 +85,34 @@ if "daily_tasks" not in st.session_state:
 if "completed_counts" not in st.session_state:
     st.session_state.completed_counts = {}
 
-# 5. CSS (PRESERVED + GHOST ICON FIX)
+# 5. CSS (PRESERVED + NEW ANIMATIONS)
 st.markdown(f"""
     <style>
+    /* ANIMATION KEYFRAMES */
+    @keyframes fadeIn {{
+        from {{ opacity: 0; transform: translateY(20px); }}
+        to {{ opacity: 1; transform: translateY(0); }}
+    }}
+
+    @keyframes slideRight {{
+        from {{ opacity: 0; transform: translateX(-30px); }}
+        to {{ opacity: 1; transform: translateX(0); }}
+    }}
+
+    /* APPLYING ANIMATIONS */
+    [data-testid="stForm"], .profile-card, .stat-box {{
+        animation: fadeIn 0.8s ease-out forwards;
+    }}
+
+    .todo-item, .alert-card {{
+        animation: slideRight 0.5s ease-out forwards;
+    }}
+
+    [data-testid="stSidebar"] {{
+        animation: slideRight 0.6s ease-in-out;
+    }}
+
+    /* PREVIOUS STYLES (PRESERVED) */
     [data-testid="stHeader"] {{ 
         background: rgba(0,0,0,0) !important; 
         color: #124D41 !important;
@@ -106,7 +130,9 @@ st.markdown(f"""
         background: #F1F8E9; 
         border-radius: 20px; padding: 20px; text-align: center; border: 1px solid #E1EDD8;
         height: 120px; display: flex; flex-direction: column; justify-content: center; align-items: center;
+        transition: transform 0.3s ease; /* Hover effect */
     }}
+    .stat-box:hover {{ transform: scale(1.05); }}
     .stat-val {{ font-size: 24px; font-weight: 800; color: #124D41; margin: 0; }}
     .stat-lbl {{ font-size: 12px; color: #666; text-transform: uppercase; margin: 0; }}
     .profile-card {{ 
@@ -136,7 +162,7 @@ if not st.session_state.auth:
             if u == "doctor1" and p == "mediflow2026":
                 st.session_state.auth = True; st.rerun()
 else:
-    # --- UPDATED PHYSICIAN LOGIC ---
+    # --- PHYSICIAN LOGIC ---
     today_str = date.today().strftime("%Y-%m-%d")
     current_tasks = st.session_state.daily_tasks.get(today_str, [])
     
