@@ -37,102 +37,82 @@ if "current_page" not in st.session_state:
     st.session_state.current_page = "Homepage"
 if "active_chat" not in st.session_state:
     st.session_state.active_chat = list(MESSAGES_DB.keys())[0]
+if "dark_mode" not in st.session_state:
+    st.session_state.dark_mode = False
 
-# 4. COLOR THEME & ANIMATION CSS
-st.markdown("""
+# 4. CSS: NO-SCROLL + THEME + ANIMATIONS
+bg_style = "radial-gradient(circle at top right, #0A1F1C, #050C0B)" if st.session_state.dark_mode else "radial-gradient(circle at top right, #F9FFF9, #FDFDFD)"
+card_bg = "#122B26" if st.session_state.dark_mode else "#FFFFFF"
+text_color = "#E0E0E0" if st.session_state.dark_mode else "#124D41"
+border_color = "#1E3D37" if st.session_state.dark_mode else "#E0E0E0"
+
+st.markdown(f"""
     <style>
-    /* RADIAL GRADIENT BACKGROUND */
-    .stApp {
-        background: radial-gradient(circle at top right, #F4FAF4, #FFFFFF) !important;
-    }
+    /* PREVENT SCROLLING ON LOGIN ONLY */
+    html, body, [data-testid="stAppViewContainer"] {{
+        overflow: {"hidden" if not st.session_state.auth else "auto"};
+        height: 100vh;
+    }}
 
-    html, body, [class*="css"] {
-        font-family: 'Inter', sans-serif;
-        font-size: 16px !important;
-        color: #124D41;
-    }
+    .stApp {{
+        background: {bg_style} !important;
+        transition: background 0.5s ease;
+    }}
 
-    /* ANIMATION KEYFRAMES */
-    @keyframes fadeInUp {
-        from { opacity: 0; transform: translateY(15px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
+    /* HEARTBEAT ANIMATION */
+    @keyframes heartbeat {{
+        0% {{ transform: scale(1); }}
+        14% {{ transform: scale(1.1); }}
+        28% {{ transform: scale(1); }}
+        42% {{ transform: scale(1.15); }}
+        70% {{ transform: scale(1); }}
+    }}
+    .heartbeat-logo {{ animation: heartbeat 1.5s infinite; display: inline-block; }}
 
-    .page-transition { animation: fadeInUp 0.4s ease-out forwards; }
+    /* PAGE FADE-IN */
+    @keyframes fadeInUp {{
+        from {{ opacity: 0; transform: translateY(20px); }}
+        to {{ opacity: 1; transform: translateY(0); }}
+    }}
+    .page-transition {{ animation: fadeInUp 0.5s ease-out forwards; }}
 
-    /* SEARCH BAR FIX: PERFECT CENTERING */
-    .stTextInput > div > div {
-        display: flex !important;
-        align-items: center !important;
-        height: 50px !important; 
-        background-color: #FFFFFF !important;
-        border-radius: 12px !important;
-        border: 1.5px solid #E0E0E0 !important;
-        transition: border-color 0.3s ease;
-    }
+    /* LOGIN CARD POSITIONING */
+    .login-wrapper {{
+        display: flex; flex-direction: column; justify-content: center;
+        align-items: center; height: 100vh;
+    }}
 
-    .stTextInput > div > div > input {
-        text-align: center !important;
-        font-size: 16px !important;
-        height: 100% !important;
-        line-height: 50px !important; 
-        padding: 0 !important;
-        background: transparent !important;
-        border: none !important;
-    }
+    .login-card {{
+        border: 6px solid #93C572; border-radius: 80px; padding: 60px 100px; 
+        background-color: {card_bg}; text-align: center; max-width: 850px;
+        box-shadow: 0 20px 50px rgba(147, 197, 114, 0.15);
+    }}
 
-    /* LOGIN PAGE PRESERVED DESIGN */
-    .login-card {
-        border: 6px solid #93C572; 
-        border-radius: 80px; 
-        padding: 100px; 
-        background-color: #F9FFF9; 
-        text-align: center; 
-        max-width: 900px; 
-        margin: auto;
-        box-shadow: 0 20px 60px rgba(147, 197, 114, 0.12);
-    }
+    /* SEARCH BAR FIX */
+    .stTextInput > div > div {{
+        height: 50px !important; background-color: {card_bg} !important;
+        border-radius: 12px !important; border: 1.5px solid {border_color} !important;
+    }}
+    .stTextInput > div > div > input {{
+        text-align: center !important; line-height: 50px !important; 
+        color: {text_color} !important;
+    }}
 
-    /* BUTTON MOTIONS (SPRING EFFECT) */
-    .stButton > button {
-        height: 48px !important;
-        border-radius: 10px !important;
+    /* BUTTON MOTIONS (SPRING) */
+    .stButton > button {{
+        height: 48px !important; border-radius: 10px !important;
         transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
-        background-color: white !important;
-        border: 1px solid #EEE !important;
-    }
-
-    .stButton > button:hover {
-        border-color: #93C572 !important;
-        color: #93C572 !important;
-        transform: translateY(-3px) scale(1.02) !important;
-        box-shadow: 0 8px 15px rgba(147, 197, 114, 0.1) !important;
-    }
-
-    .stButton > button:active {
-        transform: scale(0.96) !important;
-    }
-
-    /* SIDEBAR */
-    section[data-testid="stSidebar"] { 
-        width: 320px !important; 
-        background-color: white !important;
-    }
-
-    /* DASHBOARD CARDS */
-    div[data-testid="stVerticalBlockBorderWrapper"] {
-        border-radius: 20px !important;
-        padding: 30px !important;
-        background: white !important;
-        border: 1px solid #EEE !important;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.02) !important;
-    }
-    
-    .main .block-container { padding-top: 80px !important; }
+        background-color: {card_bg} !important; color: {text_color} !important;
+        border: 1px solid {border_color} !important;
+    }}
+    .stButton > button:hover {{
+        border-color: #93C572 !important; color: #93C572 !important;
+        transform: translateY(-3px) scale(1.02);
+    }}
     </style>
     """, unsafe_allow_html=True)
 
-# 5. SEARCH LOGIC
+# 5. GLOBAL SEARCH LOGIC
 def run_global_search(query):
     if not query: return None
     results = []
@@ -144,19 +124,20 @@ def run_global_search(query):
 
 # 6. APP FLOW
 if not st.session_state.auth:
-    # --- PRESERVED LOGIN DESIGN ---
-    st.markdown("<br><br>", unsafe_allow_html=True)
-    logo_html = f'<img src="data:image/png;base64,{logo_b64}" style="width:300px;">' if logo_b64 else ""
+    # --- NO-SCROLL LOGIN PAGE (PRESERVED DESIGN) ---
+    st.markdown('<div class="login-wrapper">', unsafe_allow_html=True)
+    logo_html = f'<div class="heartbeat-logo"><img src="data:image/png;base64,{logo_b64}" style="width:250px;"></div>' if logo_b64 else ""
     
     st.markdown(f"""
-        <div class="login-card page-transition">
+        <div class="login-card">
             {logo_html}
-            <div style="color: #93C572; font-weight: 800; font-size: 35px; margin-top: 20px;">67+2 PODCAST</div>
-            <div style="color: #124D41; font-size: 100px; font-weight: 900; margin: 0; letter-spacing: -5px;">M-FLO</div>
+            <div style="color: #93C572; font-weight: 800; font-size: 30px; margin-top: 10px;">67+2 PODCAST</div>
+            <div style="color: {text_color}; font-size: 90px; font-weight: 900; margin: 0; letter-spacing: -5px;">M-FLO</div>
         </div>
     """, unsafe_allow_html=True)
 
-    _, col2, _ = st.columns([1, 1.5, 1])
+    st.markdown("<br>", unsafe_allow_html=True)
+    _, col2, _ = st.columns([1, 1.2, 1])
     with col2:
         u = st.text_input("Physician ID")
         p = st.text_input("Security Key", type="password")
@@ -164,27 +145,27 @@ if not st.session_state.auth:
             if u == "doctor1" and p == "mediflow2026":
                 st.session_state.auth = True
                 st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+
 else:
-    # --- DASHBOARD TOP NAV ---
+    # --- DASHBOARD (SCROLLABLE) ---
     t1, t2, t3 = st.columns([1, 2, 1])
     with t2:
         sq = st.text_input("search", placeholder="Search functions...", label_visibility="collapsed", key="g_search")
         matches = run_global_search(sq)
         if matches:
-            st.markdown('<div class="page-transition">', unsafe_allow_html=True)
             for m in matches[:3]:
                 if st.button(f"🔍 {m['title']}", key=f"s_{m['title']}", use_container_width=True):
                     st.session_state.current_page = m['page']
                     st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
 
-    with t3:
-        st.markdown(f"<p style='text-align:right; font-weight:700; padding-top:10px;'>Hello, {user_name}</p>", unsafe_allow_html=True)
-
-    # --- SIDEBAR (ANIMATED) ---
     with st.sidebar:
         if logo_b64: st.image(f"data:image/png;base64,{logo_b64}", use_container_width=True)
-        st.markdown("<br>", unsafe_allow_html=True)
+        theme_btn = "☀️ Light Mode" if st.session_state.dark_mode else "🌙 Dark Mode"
+        if st.button(theme_btn, use_container_width=True):
+            st.session_state.dark_mode = not st.session_state.dark_mode
+            st.rerun()
+        st.divider()
         if st.button("🏠 Homepage", use_container_width=True): st.session_state.current_page = "Homepage"
         if st.button("👥 Patients", use_container_width=True): st.session_state.current_page = "Patients"
         if st.button("✉️ Messages", use_container_width=True): st.session_state.current_page = "Messages"
@@ -194,7 +175,7 @@ else:
             st.session_state.auth = False
             st.rerun()
 
-    # --- CONTENT AREA (WITH TRANSITION) ---
+    # --- CONTENT AREA (PRESERVED FUNCTIONS) ---
     st.markdown('<div class="page-transition">', unsafe_allow_html=True)
     st.markdown(f"<h1>{st.session_state.current_page}</h1>", unsafe_allow_html=True)
 
@@ -209,7 +190,8 @@ else:
             with st.container(height=400, border=True):
                 st.markdown(f"**Chat: {st.session_state.active_chat}**")
                 for msg in MESSAGES_DB[st.session_state.active_chat]:
-                    st.markdown(f'<div style="background:#F1F8F1; padding:12px; border-radius:10px; margin-bottom:8px; border:1px solid #EEE;">{msg}</div>', unsafe_allow_html=True)
+                    bubble_bg = "#1E3D37" if st.session_state.dark_mode else "#F1F8F1"
+                    st.markdown(f'<div style="background:{bubble_bg}; padding:12px; border-radius:10px; margin-bottom:8px; border:1px solid {border_color};">{msg}</div>', unsafe_allow_html=True)
             st.text_input("Reply...", key="chat_in", label_visibility="collapsed")
             st.button("Send ➔")
 
