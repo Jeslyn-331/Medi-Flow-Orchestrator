@@ -6,7 +6,7 @@ from datetime import date, datetime
 
 # 1. PAGE SETUP
 st.set_page_config(
-    page_title="M-FLO | clinical Workspace", 
+    page_title="M-FLO | Clinical Workspace", 
     page_icon="⚕️", 
     layout="wide"
 )
@@ -63,7 +63,7 @@ doctor_b64 = get_base64_from_url(GITHUB_RAW_URL)
 if not doctor_b64:
     doctor_b64 = get_base64("doctor_profile.jpg")
 
-# 4. SESSION STATE (PRESERVED)
+# 4. SESSION STATE (PRESERVED + NEW URGENT PATIENTS)
 if "auth" not in st.session_state:
     st.session_state.auth = False
 if "current_page" not in st.session_state:
@@ -71,16 +71,17 @@ if "current_page" not in st.session_state:
 if "show_alerts" not in st.session_state:
     st.session_state.show_alerts = False
 
+# UPDATED: Added new urgent patients here
 if "urgent_patients" not in st.session_state:
     st.session_state.urgent_patients = [
-        {"Room": "402", "Name": "Alice Tan", "Issue": "Tachycardia Spike"},
-        {"Room": "ICU-1", "Name": "Bob Smith", "Issue": "Post-Op Arrhythmia"},
-        {"Room": "ER-3", "Name": "Charlie Day", "Issue": "Unstable Angina"}
+        {"Room": "302", "Name": "James Wilson", "Issue": "Respiratory Distress / Low O2"},
+        {"Room": "415", "Name": "Maria Garcia", "Issue": "Diabetic Ketoacidosis (DKA)"},
+        {"Room": "209", "Name": "Robert Chen", "Issue": "Hypertensive Crisis (190/110)"}
     ]
 
 if "daily_tasks" not in st.session_state:
     st.session_state.daily_tasks = {
-        str(date.today()): [] # Initialized as empty so counts start at 0
+        str(date.today()): [] 
     }
 if "completed_counts" not in st.session_state:
     st.session_state.completed_counts = {}
@@ -139,7 +140,6 @@ else:
     today_str = date.today().strftime("%Y-%m-%d")
     current_tasks = st.session_state.daily_tasks.get(today_str, [])
     
-    # Updated to search for "Patient" or "Follow-up"
     count_patients = sum(1 for task in current_tasks if "patient" in task.lower() or "consult" in task.lower())
     count_followups = sum(1 for task in current_tasks if "follow" in task.lower() or "review" in task.lower())
 
@@ -158,7 +158,7 @@ else:
     if st.session_state.current_page == "Homepage":
         st.markdown(f'<p style="color:#124D41; font-weight:700; font-size:18px;">Hello, {user_name} 👋</p>', unsafe_allow_html=True)
 
-        # UPDATED STATS ROW (Physician Labels + Dynamic Counters)
+        # UPDATED STATS ROW
         s1, s2, s3, s4 = st.columns(4)
         with s1: st.markdown(f'<div class="stat-box"><p class="stat-lbl">Consultations</p><p class="stat-val">{count_patients:02d}</p></div>', unsafe_allow_html=True)
         with s2: st.markdown(f'<div class="stat-box"><p class="stat-lbl">Follow-ups</p><p class="stat-val">{count_followups:02d}</p></div>', unsafe_allow_html=True)
