@@ -11,7 +11,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# 2. GLOBAL DATA & VARIABLES (EXPANDED FOR A NICER LOOK)
+# 2. GLOBAL DATA & VARIABLES (PRESERVED)
 user_name = "Dr. John Doe"
 GITHUB_RAW_URL = "https://raw.githubusercontent.com/your-username/your-repo/main/doctor_profile.jpg" 
 
@@ -37,7 +37,7 @@ COMMUNITY_POSTS = [
 RESERVATIONS_DB = [
     {"Time": "09:00 AM", "Patient": "Alice Tan", "Status": "Confirmed"},
     {"Time": "11:30 AM", "Patient": "Bob Smith", "Status": "Pending"}
-]
+)
 
 MESSAGES_DB = {
     "Dr. Sarah Smith": ["Hello Doctor, regarding the lab results...", "I've updated the patient chart."],
@@ -86,13 +86,33 @@ if "daily_tasks" not in st.session_state:
 if "completed_counts" not in st.session_state:
     st.session_state.completed_counts = {}
 
-# 5. CSS (PRESERVED + ENHANCED PROFILE CARD)
+# 5. CSS (PRESERVED + ADDED MENU SYMBOL STYLE)
 st.markdown(f"""
     <style>
     [data-testid="stHeader"] {{ display: none; }}
     [data-testid="stAppViewContainer"] {{
         background: radial-gradient(circle at top right, #F9FFF9, #FDFDFD) !important;
     }}
+    
+    /* FLOATING MENU SYMBOL STYLE */
+    .menu-trigger {{
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 999;
+        background: white;
+        padding: 10px 15px;
+        border-radius: 12px;
+        border: 1px solid #E0E0E0;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: 0.3s;
+    }}
+    .menu-trigger:hover {{ border-color: #93C572; background: #F9FFF9; }}
+
     .stat-box {{ 
         background: #F1F8E9; 
         border-radius: 20px; padding: 20px; text-align: center; border: 1px solid #E1EDD8;
@@ -101,14 +121,9 @@ st.markdown(f"""
     .stat-val {{ font-size: 24px; font-weight: 800; color: #124D41; margin: 0; }}
     .stat-lbl {{ font-size: 12px; color: #666; text-transform: uppercase; margin: 0; }}
     
-    /* ENHANCED PROFILE CARD */
     .profile-card {{ 
-        background: white; 
-        padding: 40px; 
-        border-radius: 35px; 
-        border: 1px solid #E0E0E0; 
-        box-shadow: 0 15px 50px rgba(0,0,0,0.05);
-        margin-top: 10px;
+        background: white; padding: 40px; border-radius: 35px; border: 1px solid #E0E0E0; 
+        box-shadow: 0 15px 50px rgba(0,0,0,0.05); margin-top: 10px;
     }}
     .profile-img {{ width: 140px; height: 140px; border-radius: 30px; object-fit: cover; border: 4px solid #93C572; box-shadow: 0 8px 20px rgba(147, 197, 114, 0.2); }}
     .cert-tag {{ background: #E8F5E9; color: #2E7D32; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; margin: 4px; display: inline-block; border: 1px solid #C8E6C9; }}
@@ -134,7 +149,15 @@ if not st.session_state.auth:
             if u == "doctor1" and p == "mediflow2026":
                 st.session_state.auth = True; st.rerun()
 else:
-    # SIDEBAR
+    # ADDED MENU SYMBOL (Instructional Helper)
+    st.markdown("""
+        <div class="menu-trigger">
+            <span style="font-size:20px;">☰</span>
+            <span style="font-size:12px; color:#666; font-weight:600;">PRESS 'X' TO OPEN MENU</span>
+        </div>
+    """, unsafe_allow_html=True)
+
+    # SIDEBAR (PRESERVED)
     with st.sidebar:
         if logo_b64: st.image(f"data:image/png;base64,{logo_b64}", use_container_width=True)
         st.divider()
@@ -147,7 +170,7 @@ else:
         if st.button("🚪 Logout", key="nav_l", use_container_width=True): st.session_state.auth = False; st.rerun()
 
     if st.session_state.current_page == "Homepage":
-        st.markdown(f'<p style="color:#124D41; font-weight:700; font-size:18px;">Hello, {user_name} 👋</p>', unsafe_allow_html=True)
+        st.markdown(f'<p style="color:#124D41; font-weight:700; font-size:18px; margin-left:100px;">Hello, {user_name} 👋</p>', unsafe_allow_html=True)
 
         # STATS ROW
         s1, s2, s3, s4 = st.columns(4)
@@ -174,15 +197,11 @@ else:
                             st.session_state.urgent_patients.pop(idx); st.rerun()
             st.divider()
 
-        # --- LONGER & NICER DOCTOR PROFILE ---
+        # DOCTOR PROFILE (PRESERVED)
         col_main, col_plan = st.columns([2.2, 1], gap="large")
         with col_main:
             img_html = f'<img src="data:image/png;base64,{doctor_b64}" class="profile-img">' if doctor_b64 else '👨‍⚕️'
-            
-            # Generating HTML for Mini Stats
             stats_html = "".join([f'<div class="mini-stat"><span class="mini-stat-val">{s["value"]}</span><span class="mini-stat-lbl">{s["label"]}</span></div>' for s in DOCTOR_BIO['stats']])
-            
-            # Generating HTML for Cert Tags
             certs_html = "".join([f'<span class="cert-tag">{c}</span>' for c in DOCTOR_BIO['certs']])
 
             st.markdown(f"""
