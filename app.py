@@ -1,26 +1,22 @@
 import streamlit as st
+import base64
+import os
 import time
 
 st.set_page_config(
-    page_title="M-FLO | Medi-Flow Orchestrator", 
+    page_title="M-FLO | Secure Access Portal", 
     page_icon="⚕️", 
     layout="wide"
 )
 
-logo_svg = """
-<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 10px;">
-    <svg width="70" height="70" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="9" y="2" width="6" height="12" rx="3" fill="#93C572"/>
-        <path d="M5 10V11C5 14.866 8.13401 18 12 18V18C15.866 18 19 14.866 19 11V10" stroke="#93C572" stroke-width="2" stroke-linecap="round"/>
-        <line x1="12" y1="18" x2="12" y2="22" stroke="#93C572" stroke-width="2" stroke-linecap="round"/>
-        <line x1="9" y1="22" x2="15" y2="22" stroke="#93C572" stroke-width="2" stroke-linecap="round"/>
-        <path d="M12 7V11M10 9H14" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-    </svg>
-    <div style="color: #93C572; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-weight: 800; font-size: 22px; letter-spacing: -0.5px; margin-top: 5px;">
-        67+2 <span style="color: #124D41;">PODCAST</span>
-    </div>
-</div>
-"""
+def get_base64_image(file_path):
+    if os.path.exists(file_path):
+        with open(file_path, "rb") as f:
+            data = f.read()
+        return base64.b64encode(data).decode()
+    return None
+
+logo_b64 = get_base64_image("logo_medical.png")
 
 st.markdown(f"""
     <style>
@@ -76,6 +72,12 @@ st.markdown(f"""
         padding: 12px;
         border-radius: 10px;
         margin-top: 10px;
+        transition: all 0.3s ease;
+    }}
+    
+    div.stButton > button:hover {{
+        transform: scale(1.02);
+        box-shadow: 0 5px 15px rgba(152, 255, 217, 0.4);
     }}
 
     section[data-testid="stSidebar"] {{
@@ -91,9 +93,14 @@ if "auth" not in st.session_state:
 if not st.session_state.auth:
     st.markdown("<br><br>", unsafe_allow_html=True)
     
+    if logo_b64:
+        logo_html = f'<div style="display: flex; justify-content: center;"><img src="data:image/png;base64,{logo_b64}" style="width:250px; margin-bottom:10px;"></div>'
+    else:
+        logo_html = '<div style="color:#93C572; font-weight:800; font-size:24px; margin-bottom:10px;">67+2 PODCAST</div>'
+
     st.markdown(f"""
         <div class="login-card">
-            {logo_svg}
+            {logo_html}
             <div class="mflo-header">M-FLO</div>
             <p style="color: #124D41; font-size: 14px; margin-bottom: 20px; font-weight: 500;">
                 Medi-Flow Orchestrator v2.1 | Secure Portal
@@ -115,11 +122,11 @@ if not st.session_state.auth:
                 st.error("Invalid Credentials. Access Denied.")
         
         st.markdown("<p style='text-align:center; font-size:11px; color:gray; margin-top:15px;'>Auth: MD-Level Encrypted Access Only</p>", unsafe_allow_html=True)
-        st.info("ℹ️ Demo: doctor1 / mediflow2026")
 
 else:
     with st.sidebar:
-        st.markdown(logo_svg, unsafe_allow_html=True)
+        if logo_b64:
+            st.markdown(f'<img src="data:image/png;base64,{logo_b64}" width="150">', unsafe_allow_html=True)
         st.title("M-FLO v2.1")
         st.write("Logged in: **Dr. John Doe**")
         st.divider()
