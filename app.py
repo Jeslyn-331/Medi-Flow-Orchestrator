@@ -9,7 +9,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# 2. GLOBAL DATA & VARIABLES (RESTORED ALL)
+# 2. GLOBAL DATA & VARIABLES (ALL RESTORED)
 user_name = "Dr. John Doe"
 
 DOCTOR_BIO = {
@@ -19,7 +19,6 @@ DOCTOR_BIO = {
     "achievements": ["Best Clinician Award 2025", "50+ Published Research Papers", "Lead Researcher - Project HeartBeat"]
 }
 
-# Restored Community & Messages Data
 COMMUNITY_POSTS = [
     {"user": "u/Cardio_Lead", "title": "Hypertension resistance protocols", "content": "Recent studies suggest..."},
     {"user": "u/Heart_Monitor", "title": "M-FLO v2.1 Beta Feedback", "content": "The new UI is much cleaner..."}
@@ -55,32 +54,35 @@ def get_base64(file_path):
 
 logo_b64 = get_base64("logo_medical.png")
 
-# 4. CSS (MINT THEME + ANIMATIONS)
+# 4. CSS (MINT THEME + PROFILE DESIGN)
 st.markdown(f"""
     <style>
     @keyframes slideUp {{ from {{ opacity: 0; transform: translateY(20px); }} to {{ opacity: 1; transform: translateY(0); }} }}
     [data-testid="stHeader"] {{ display: none; }}
-    [data-testid="stAppViewContainer"] {{ background: radial-gradient(circle at top right, #F9FFF9, #FDFDFD) !important; }}
-
+    
     /* MINT SIDEBAR */
     [data-testid="stSidebar"] {{
         background-color: #E8F5E9 !important;
         background-image: linear-gradient(180deg, #E8F5E9 0%, #C8E6C9 100%) !important;
     }}
-    
-    /* CARDS */
-    .profile-card, .community-card {{
-        background: white; padding: 30px; border-radius: 25px; border: 1px solid #E0E0E0;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.05); animation: slideUp 0.6s ease-out;
+
+    /* PROFILE & COMMUNITY CARDS */
+    .profile-card {{
+        background: white; padding: 35px; border-radius: 30px; border: 1px solid #E0E0E0;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.04); animation: slideUp 0.6s ease-out;
+    }}
+    .cert-pill {{
+        background: #E8F5E9; color: #2E7D32; padding: 6px 14px; border-radius: 20px;
+        font-size: 13px; font-weight: 600; display: inline-block; margin: 4px;
     }}
     .todo-container {{
         background: #F1F8E9; padding: 10px 15px; border-radius: 12px;
-        border-left: 5px solid #93C572; margin-bottom: 8px;
+        border-left: 5px solid #93C572; margin-bottom: 10px;
     }}
     </style>
     """, unsafe_allow_html=True)
 
-# 5. GLOBAL SEARCH (RESTORED ALL NAV ITEMS)
+# 5. GLOBAL SEARCH
 def run_global_search(query):
     if not query: return None
     results = []
@@ -92,11 +94,12 @@ def run_global_search(query):
 
 # 6. APP FLOW
 if not st.session_state.auth:
+    # LOGIN (PRESERVED)
     with st.form("login_form"):
         st.markdown('<h1 style="text-align:center; color:#124D41;">M-FLO</h1>', unsafe_allow_html=True)
-        u = st.text_input("ID", placeholder="doctor1")
-        p = st.text_input("Key", type="password", placeholder="mediflow2026")
-        if st.form_submit_button("AUTHENTICATE"):
+        u = st.text_input("Physician ID", placeholder="Enter ID")
+        p = st.text_input("Security Key", type="password")
+        if st.form_submit_button("AUTHENTICATE SYSTEM"):
             if u == "doctor1" and p == "mediflow2026":
                 st.session_state.auth = True; st.rerun()
 else:
@@ -125,27 +128,49 @@ else:
 
     # --- PAGES ---
     if st.session_state.current_page == "Homepage":
-        c_main, c_plan = st.columns([2.2, 1], gap="large")
-        with c_main:
-            st.markdown(f'<div class="profile-card"><h2>{user_name}</h2><p>{DOCTOR_BIO["desc"]}</p></div>', unsafe_allow_html=True)
-        with c_plan:
+        col_main, col_plan = st.columns([2.2, 1], gap="large")
+        
+        with col_main:
+            st.markdown(f"""
+                <div class="profile-card">
+                    <div style="display: flex; align-items: center; gap: 25px;">
+                        <div style="width: 110px; height: 110px; background: linear-gradient(135deg, #93C572, #2E7D32); border-radius: 30px; display: flex; align-items: center; justify-content: center; color: white; font-size: 50px;">👨‍⚕️</div>
+                        <div>
+                            <h1 style="margin:0; color:#124D41;">{user_name}</h1>
+                            <p style="color:#93C572; font-weight:700;">{DOCTOR_BIO['title']}</p>
+                        </div>
+                    </div>
+                    <hr style="border:0; border-top:1px solid #eee; margin: 25px 0;">
+                    <p style="color:#444; font-size:16px;">{DOCTOR_BIO['desc']}</p>
+                    <h4 style="color:#124D41;">Academic Credentials</h4>
+                    {''.join([f'<span class="cert-pill">{c}</span>' for c in DOCTOR_BIO['certs']])}
+                    <h4 style="color:#124D41; margin-top:20px;">Achievements</h4>
+                    <ul>{''.join([f'<li>{a}</li>' for a in DOCTOR_BIO['achievements']])}</ul>
+                </div>
+            """, unsafe_allow_html=True)
+
+        with col_plan:
+            st.markdown("### 📅 Calendar")
+            st.date_input("Schedule", label_visibility="collapsed")
+            st.divider()
             st.markdown("### 📝 Planning")
             total = len(st.session_state.todos) + st.session_state.completed_count
             st.progress(st.session_state.completed_count / total if total > 0 else 0)
             for i, task in enumerate(st.session_state.todos):
-                col1, col2 = st.columns([4, 1])
-                col1.markdown(f'<div class="todo-container">{task}</div>', unsafe_allow_html=True)
-                if col2.button("✔️", key=f"d_{i}"):
+                c1, c2 = st.columns([5, 1])
+                c1.markdown(f'<div class="todo-container">{task}</div>', unsafe_allow_html=True)
+                if c2.button("✔️", key=f"d_{i}"):
                     st.session_state.todos.pop(i); st.session_state.completed_count += 1; st.rerun()
 
     elif st.session_state.current_page == "Community":
         st.title("🤝 Medical Community")
         for post in COMMUNITY_POSTS:
-            st.markdown(f'<div class="community-card"><h4>{post["title"]}</h4><p>{post["content"]}</p></div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="profile-card" style="margin-bottom:20px;"><h4>{post["title"]}</h4><p>{post["content"]}</p></div>', unsafe_allow_html=True)
 
     elif st.session_state.current_page == "Messages":
-        st.title("✉️ Physician Inbox")
+        st.title("✉️ Messages")
         st.write(MESSAGES_DB[st.session_state.active_chat])
 
     elif st.session_state.current_page == "Reservation":
+        st.title("📅 Reservations")
         st.table(RESERVATIONS_DB)
