@@ -1,155 +1,176 @@
 import streamlit as st
+import base64
 import os
 import time
 
-# --- 1. GLOBAL PAGE SETUP ---
-st.set_page_config(page_title="M-FLO | Medi-Flow", page_icon="⚕️", layout="wide")
+# --- 1. PAGE CONFIGURATION ---
+st.set_page_config(
+    page_title="M-FLO | Medi-Flow Orchestrator", 
+    page_icon="⚕️", 
+    layout="wide"
+)
 
-# --- 2. THE "MOCKUP-ACCURATE" CSS ---
-st.markdown("""
+# --- 2. LOGO ENCODER (Ensures logo stays inside the HTML frame) ---
+def get_base64_image(file_path):
+    if os.path.exists(file_path):
+        with open(file_path, "rb") as f:
+            data = f.read()
+        return base64.b64encode(data).decode()
+    return None
+
+logo_b64 = get_base64_image("logo_medical.png")
+
+# --- 3. AGGRESSIVE CSS (Fixes Black Boxes & Forces Layout) ---
+st.markdown(f"""
     <style>
-    /* 1. Force Pure White Background globally */
-    .stApp { background-color: #FFFFFF !important; }
+    /* Force Light Mode Globally */
+    .stApp {{ background-color: #FFFFFF !important; color: #2F4F4F !important; }}
     
-    /* 2. Target the Container Border (Pistachio Frame) */
-    /* This styles the st.container(border=True) specifically */
-    div[data-testid="stVerticalBlockBorderWrapper"] {
-        border: 2.5px solid #93C572 !important;
-        border-radius: 20px !important;
-        background-color: #F9FFF9 !important;
-        padding: 30px !important;
-        max-width: 480px !important;
-        margin: auto !important;
-    }
-
-    /* 3. Force Input Boxes to be White with Dark Green Text */
-    div[data-baseweb="input"], div[data-baseweb="textarea"] {
+    /* THE BLACK BOX FIX: Target Streamlit's internal input containers */
+    div[data-baseweb="input"], div[data-baseweb="textarea"], .stTextArea textarea {{
         background-color: #FFFFFF !important;
-        border: 1.5px solid #93C572 !important;
+        border: 2px solid #93C572 !important;
         border-radius: 10px !important;
-    }
-    input {
+    }}
+    
+    /* THE TEXT FIX: Force input text to be Dark Green/Charcoal */
+    input, textarea {{
         color: #124D41 !important;
         -webkit-text-fill-color: #124D41 !important;
-        font-weight: 500 !important;
-    }
+    }}
 
-    /* 4. Labels & M-FLO Title Styling */
-    label p { 
-        color: #124D41 !important; 
-        font-weight: bold !important; 
-        text-align: left !important; 
-    }
-    .mflo-header {
-        color: #124D41;
-        font-size: 38px;
-        font-weight: 850;
-        margin-bottom: -10px;
+    /* The Pistachio Frame (The Card) */
+    .login-card {{
+        border: 2.5px solid #93C572;
+        border-radius: 20px;
+        padding: 40px;
+        background-color: #F9FFF9;
         text-align: center;
-    }
-    .mflo-sub {
-        color: #124D41;
-        font-size: 14px;
-        text-align: center;
-        margin-bottom: 20px;
-    }
+        max-width: 480px;
+        margin: auto;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    }}
 
-    /* 5. The Mint "Authenticate" Button */
-    div.stButton > button {
+    /* Title & Label Styling */
+    .mflo-header {{ color: #124D41; font-size: 42px; font-weight: 900; margin: 0; }}
+    label p {{ color: #124D41 !important; font-weight: bold !important; text-align: left !important; }}
+
+    /* Mint Authenticate Button */
+    div.stButton > button {{
         background-color: #98FFD9 !important;
         color: #124D41 !important;
-        border: none !important;
+        border: 1.5px solid #93C572 !important;
         font-weight: 800 !important;
-        font-size: 16px !important;
         text-transform: uppercase;
         width: 100%;
-        padding: 15px;
+        padding: 12px;
         border-radius: 10px;
         margin-top: 10px;
-    }
+    }}
 
-    /* 6. Sidebar styling */
-    section[data-testid="stSidebar"] {
+    /* Sidebar Styling */
+    section[data-testid="stSidebar"] {{
         background-color: #F0F4F2 !important;
         border-right: 1px solid #93C572;
-    }
+    }}
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. SESSION STATE ---
+# --- 4. SESSION MANAGEMENT ---
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
+if "orders" not in st.session_state:
+    st.session_state.orders = []
 
-# --- 4. NAVIGATION LOGIC ---
+# --- 5. APP NAVIGATION ---
 
 if not st.session_state.authenticated:
-    # --- PAGE 1: LOGIN (CENTERED & FRAMED) ---
+    # --- PAGE 1: LOGIN (EXACT MATCH) ---
     st.markdown("<br><br>", unsafe_allow_html=True)
     
-    # We use columns to force the container to stay in the center
-    _, center_col, _ = st.columns([1, 1.5, 1])
+    # Everything inside this <div> is styled by the .login-card CSS
+    logo_html = f'<img src="data:image/png;base64,{logo_b64}" style="width:280px;">' if logo_b64 else '<h1>67+2 PODCAST</h1>'
     
-    with center_col:
-        # Everything inside this 'with' block is now framed in Pistachio
-        with st.container(border=True):
-            
-            # 1. Logo
-            if os.path.exists("logo_medical.png"):
-                st.image("logo_medical.png", use_container_width=True)
-            
-            # 2. Text Content (Ensuring high visibility)
-            st.markdown('<div class="mflo-header">M-FLO</div>', unsafe_allow_html=True)
-            st.markdown('<div class="mflo-sub">Medi-Flow Orchestrator v2.1 | Secure Portal</div>', unsafe_allow_html=True)
-            st.markdown("<hr style='border-top: 1.5px solid #93C572;'>", unsafe_allow_html=True)
+    st.markdown(f"""
+        <div class="login-card">
+            {logo_html}
+            <div class="mflo-header">M-FLO</div>
+            <p style="color: #124D41; font-size: 14px; margin-bottom: 20px;">
+                Medi-Flow Orchestrator v2.1 | Secure Portal
+            </p>
+            <hr style="border-top: 1.5px solid #93C572; margin-bottom: 25px;">
+        </div>
+    """, unsafe_allow_html=True)
 
-            # 3. Interactive Inputs
-            phys_id = st.text_input("Physician ID", placeholder="doctor1")
-            sec_key = st.text_input("Security Key", type="password", placeholder="••••••••")
-            
-            # 4. Action Button
-            if st.button("AUTHENTICATE SYSTEM"):
-                if phys_id == "doctor1" and sec_key == "mediflow2026":
-                    st.session_state.authenticated = True
-                    st.rerun()
-                else:
-                    st.error("Invalid Security Credentials.")
-
-            st.markdown("<p style='text-align:center; font-size:11px; color:gray; margin-top:10px;'>Auth: MD-Level Encrypted Access Only</p>", unsafe_allow_html=True)
+    # Placing Streamlit inputs just below the HTML header but aligned with the frame
+    col1, col2, col3 = st.columns([1, 1.5, 1])
+    with col2:
+        u = st.text_input("Physician ID", placeholder="doctor1")
+        p = st.text_input("Security Key", type="password", placeholder="••••••••")
         
-        # Demo Credentials Box (outside the main frame)
+        if st.button("AUTHENTICATE SYSTEM"):
+            if u == "doctor1" and p == "mediflow2026":
+                st.session_state.authenticated = True
+                st.rerun()
+            else:
+                st.error("Invalid Credentials. Access Denied.")
+        
+        st.markdown("<p style='text-align:center; font-size:11px; color:gray; margin-top:15px;'>Auth: MD-Level Encrypted Access Only</p>", unsafe_allow_html=True)
         st.info("ℹ️ Demo: doctor1 / mediflow2026")
 
 else:
-    # --- PAGE 2: MAIN DASHBOARD ---
+    # --- PAGE 2: DASHBOARD (CLINICAL WORKSPACE) ---
     with st.sidebar:
-        if os.path.exists("logo_medical.png"):
-            st.image("logo_medical.png", width=120)
+        if logo_b64:
+            st.markdown(f'<img src="data:image/png;base64,{logo_b64}" width="120">', unsafe_allow_html=True)
         st.title("M-FLO v2.1")
-        st.write("Current: **Dr. John Doe**")
+        st.write("Logged in: **Dr. John Doe**")
         st.divider()
-        if st.button("LOGOUT"):
+        if st.button("LOGOUT / LOCK"):
             st.session_state.authenticated = False
+            st.session_state.orders = []
             st.rerun()
 
-    # Clinical Layout
-    st.subheader("⚕️ Patient Consultation Workspace")
-    c1, c2, c3 = st.columns([1, 2, 2])
+    st.subheader("⚕️ Patient Consultation Environment")
+    
+    # 3-Column Layout
+    col_pat, col_trans, col_res = st.columns([1, 2, 2])
 
-    with c1:
+    with col_pat:
         st.markdown("#### Patient Context")
         with st.container(border=True):
-            st.write("**J. Doe** | ID: #8821")
-            st.error("⚠️ Allergy: Penicillin")
-            st.warning("⚠️ High Blood Pressure")
+            st.markdown("### **J. Doe**")
+            st.caption("ID: #8821 | Male | 45yo")
+            st.divider()
+            st.error("⚠️ ALLERGY: Penicillin")
+            st.warning("⚠️ CONDITION: Hypertension")
 
-    with c2:
-        st.markdown("#### Clinical Transcription")
-        st.text_area("Live Audio or Physician Notes:", height=300, placeholder="Paste clinical context here...")
-        if st.button("RUN INTENT ANALYSIS"):
-            st.toast("Processing notes...")
+    with col_trans:
+        st.markdown("#### Clinical Interface")
+        notes = st.text_area("Live Transcript / Notes", height=350, placeholder="Type clinical notes here...")
+        
+        if st.button("EXECUTE INTENT ANALYSIS"):
+            if notes:
+                with st.spinner("Analyzing Clinical Data..."):
+                    time.sleep(1.5)
+                    st.session_state.orders = [
+                        {"type": "PHARMACY", "item": "Amoxicillin 500mg", "data": "QTY: 14 | 1x BID", "dest": "Main Pharmacy"},
+                        {"type": "LAB", "item": "Chest X-ray", "data": "URGENCY: STAT", "dest": "Radiology"}
+                    ]
+                    st.toast("Intents Detected!")
 
-    with c3:
-        st.markdown("#### Generated Orders")
-        with st.container(border=True):
-            st.write("💊 **Pharmacy:** Amoxicillin 500mg")
-            st.button("VERIFY & ROUTE", key="ord1")
+    with col_res:
+        st.markdown("#### AI-Generated Orders")
+        if st.session_state.orders:
+            for idx, order in enumerate(st.session_state.orders):
+                with st.container(border=True):
+                    icon = "💊" if order['type'] == "PHARMACY" else "🔬"
+                    st.markdown(f"**{icon} {order['type']} ORDER**")
+                    st.code(f"ITEM: {order['item']}\nDATA: {order['data']}\nROUTE: {order['dest']}")
+                    
+                    c1, c2 = st.columns(2)
+                    if c1.button(f"VERIFY & ROUTE", key=f"v_{idx}"):
+                        st.success(f"Dispatched to {order['dest']}")
+                    c2.button(f"EDIT", key=f"e_{idx}")
+        else:
+            st.info("Awaiting transcription analysis...")
