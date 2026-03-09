@@ -17,6 +17,11 @@ COMMUNITY_POSTS = [
     {"user": "u/Heart_Monitor", "title": "M-FLO v2.1 Beta Feedback", "content": "The new UI is much cleaner..."}
 ]
 
+RESERVATIONS_DB = [
+    {"Time": "09:00 AM", "Patient": "Alice Tan", "Status": "Confirmed"},
+    {"Time": "11:30 AM", "Patient": "Bob Smith", "Status": "Pending"}
+]
+
 MESSAGES_DB = {
     "Dr. Sarah Smith": ["Hello Doctor, regarding the lab results...", "I've updated the patient chart."],
     "Nurse Mike": ["Patient in Room 402 is ready for rounds.", "Vitals are stable."]
@@ -50,16 +55,15 @@ st.markdown(f"""
         background: radial-gradient(circle at top right, #F9FFF9, #FDFDFD) !important;
     }}
 
+    /* CENTERED LOGIN BOX */
     .main .block-container {{
-        padding-top: 0rem !important;
-        padding-bottom: 0rem !important;
+        padding: {"0" if not st.session_state.auth else "2rem"} !important;
         height: 100vh;
-        display: flex;
+        display: {"flex" if not st.session_state.auth else "block"};
         align-items: center;
         justify-content: center;
     }}
 
-    /* THE LOGIN BOX WRAPPER */
     div[data-testid="stForm"] {{
         border: 4px solid #93C572 !important; 
         border-radius: 40px !important; 
@@ -70,17 +74,17 @@ st.markdown(f"""
         text-align: center;
     }}
 
-    .mflo-header {{
-        color: #124D41;
-        font-size: 55px;
-        font-weight: 900;
-        margin: 0;
-        letter-spacing: -3px;
-        line-height: 1;
-    }}
+    .mflo-header {{ color: #124D41; font-size: 55px; font-weight: 900; margin: 0; letter-spacing: -3px; line-height: 1; }}
     .podcast-header {{ color: #93C572; font-weight: 800; font-size: 20px; margin-bottom: 5px; }}
 
-    /* INPUT STYLING */
+    /* USER GREETING TEXT */
+    .user-greeting {{
+        color: #124D41;
+        font-size: 18px;
+        font-weight: 700;
+        margin-top: 10px;
+    }}
+
     .stTextInput > div > div {{
         background-color: #f8f9fa !important;
         border: 1.5px solid #93C572 !important;
@@ -92,8 +96,6 @@ st.markdown(f"""
         color: #124D41 !important;
         font-weight: 700 !important;
         border: none !important;
-        width: 100% !important;
-        height: 48px !important;
     }}
     </style>
     """, unsafe_allow_html=True)
@@ -110,39 +112,36 @@ def run_global_search(query):
 
 # 6. APP FLOW
 if not st.session_state.auth:
-    # --- LOCKED FRAME LOGIN ---
-    # Using st.form locks all widgets into a single physical container
+    # --- LOGIN VIEW ---
     with st.form("login_form", clear_on_submit=False):
-        # 1. Logo
         if logo_b64:
             st.markdown(f'<div style="text-align:center;"><img src="data:image/png;base64,{logo_b64}" style="width:110px; margin-bottom:15px;"></div>', unsafe_allow_html=True)
-        
-        # 2. Branding
         st.markdown('<p class="podcast-header">67+2 PODCAST</p>', unsafe_allow_html=True)
         st.markdown('<h1 class="mflo-header">M-FLO</h1>', unsafe_allow_html=True)
         st.markdown('<p style="color:#888; font-size:11px; margin-bottom:20px;">Medi-Flow Orchestrator v2.1 | Secure Portal</p>', unsafe_allow_html=True)
 
-        # 3. Widgets
         u = st.text_input("Physician ID", placeholder="Enter ID", label_visibility="collapsed")
         p = st.text_input("Security Key", type="password", placeholder="Security Key", label_visibility="collapsed")
 
-        # 4. Submission
         submit = st.form_submit_button("AUTHENTICATE SYSTEM")
-        
         if submit:
             if u == "doctor1" and p == "mediflow2026":
                 st.session_state.auth = True
                 st.rerun()
             else:
                 st.error("Access Denied")
-        
         st.markdown('<p style="color:#93C572; font-size:10px; margin-top:10px;">Auth: MD-Level Encrypted Access Only</p>', unsafe_allow_html=True)
 
 else:
-    # --- DASHBOARD (ALL FUNCTIONS PRESERVED) ---
-    t1, t2, t3 = st.columns([1, 2, 1])
-    with t2:
-        sq = st.text_input("search", placeholder="Search functions...", key="g_search")
+    # --- TOP BAR WITH GREETING & SEARCH ---
+    # Column 1: Hello User | Column 2: Search Bar | Column 3: Spacer
+    top_l, top_c, top_r = st.columns([1, 2, 1])
+    
+    with top_l:
+        st.markdown(f'<p class="user-greeting">Hello, {user_name} 👋</p>', unsafe_allow_html=True)
+    
+    with top_c:
+        sq = st.text_input("search", placeholder="Search functions...", key="g_search", label_visibility="collapsed")
         matches = run_global_search(sq)
         if matches:
             for m in matches[:3]:
@@ -150,11 +149,13 @@ else:
                     st.session_state.current_page = m['page']
                     st.rerun()
 
+    # --- SIDEBAR & NAVIGATION (PRESERVED) ---
     with st.sidebar:
         if logo_b64: st.image(f"data:image/png;base64,{logo_b64}", use_container_width=True)
         st.divider()
         if st.button("🏠 Homepage", use_container_width=True): st.session_state.current_page = "Homepage"
         if st.button("👥 Patients", use_container_width=True): st.session_state.current_page = "Patients"
+        if st.button("📅 Reservation", use_container_width=True): st.session_state.current_page = "Reservation"
         if st.button("✉️ Messages", use_container_width=True): st.session_state.current_page = "Messages"
         if st.button("🤝 Community", use_container_width=True): st.session_state.current_page = "Community"
         st.divider()
@@ -166,5 +167,8 @@ else:
     st.markdown(f"<h1>{st.session_state.current_page}</h1>", unsafe_allow_html=True)
     if st.session_state.current_page == "Homepage":
         st.line_chart({"bpm": [72, 75, 78, 74, 80]})
+    elif st.session_state.current_page == "Reservation":
+        st.write("### Patient Reservation Schedule")
+        st.table(RESERVATIONS_DB)
     elif st.session_state.current_page == "Messages":
         st.write("Messages module loaded.")
