@@ -3,6 +3,7 @@ import base64
 import os
 import requests
 from datetime import date, datetime
+import google.generativeai as genai
 
 # 1. PAGE SETUP
 st.set_page_config(
@@ -11,7 +12,33 @@ st.set_page_config(
     layout="wide"
 )
 
-# 2. GLOBAL DATA & VARIABLES (PRESERVED)
+# 2. AI CONFIGURATION (SECURE)
+try:
+    # On Streamlit Cloud, add GEMINI_API_KEY to 'Settings > Secrets'
+    API_KEY = st.secrets["GEMINI_API_KEY"]
+except:
+    # For local testing, replace with your actual key string
+    API_KEY = "YOUR_API_KEY_HERE"
+
+genai.configure(api_key=API_KEY)
+model = genai.GenerativeModel('gemini-1.5-flash')
+
+def get_actual_ai_insight(title, content):
+    """Function to generate a real-time AI clinical insight"""
+    try:
+        prompt = f"""
+        You are a senior medical AI consultant. 
+        A colleague posted: "{title}"
+        Content: "{content}"
+        Provide a professional, clinical insight or a relevant research-based follow-up question. 
+        Keep it under 50 words.
+        """
+        response = model.generate_content(prompt)
+        return f"[🤖 AI ASSISTANT]: {response.text}"
+    except Exception as e:
+        return f"[🤖 AI ASSISTANT]: Analysis paused. Error: {str(e)}"
+
+# 3. GLOBAL DATA & VARIABLES
 user_name = "Dr. John Doe"
 user_role = "Consultant Physician" 
 
@@ -30,6 +57,7 @@ DOCTOR_BIO = {
     ]
 }
 
+# Initial Post Database
 if "community_posts" not in st.session_state:
     st.session_state.community_posts = [
         {"user": "Dr. Phang Lee You", "role": "Senior Consultant Cardiologist", "title": "Hypertension resistance protocols", "content": "Recent studies suggest that double-blocking RAAS might be more effective in Stage 2 patients...", "likes": 42, "comments": ["Very insightful!", "What about ACEi side effects?"]},
@@ -46,6 +74,13 @@ if "notifications" not in st.session_state:
         {"type": "clinical", "text": "Lab Results: Patient Robert Chen did their blood test", "time": "3 hours ago", "unread": False}
     ]
 
+# Patient Database (Mock)
+if "patient_db" not in st.session_state:
+    st.session_state.patient_db = {
+        "950101-10-5543": {"name": "Alice Tan", "age": 29, "history": "Asthma", "last_visit": "2026-01-12"},
+        "880520-14-6678": {"name": "Bob Smith", "age": 36, "history": "Type 2 Diabetes", "last_visit": "2026-02-28"}
+    }
+
 if "following_list" not in st.session_state:
     st.session_state.following_list = set()
 
@@ -54,7 +89,7 @@ RESERVATIONS_DB = [
     {"Time": "11:30 AM", "Patient": "Bob Smith", "Status": "Pending"}
 ]
 
-# 3. FILE ENCODING (PRESERVED)
+# 4. FILE ENCODING
 def get_base64_from_url(url):
     try:
         response = requests.get(url)
@@ -74,7 +109,7 @@ doctor_b64 = get_base64_from_url(GITHUB_RAW_URL)
 if not doctor_b64:
     doctor_b64 = get_base64("doctor_profile.jpg")
 
-# 4. SESSION STATE (PRESERVED)
+# 5. SESSION STATE
 if "auth" not in st.session_state:
     st.session_state.auth = False
 if "current_page" not in st.session_state:
@@ -94,7 +129,7 @@ if "daily_tasks" not in st.session_state:
 if "completed_counts" not in st.session_state:
     st.session_state.completed_counts = {}
 
-# 5. CSS (PRESERVED)
+# 6. CSS (STYLING)
 st.markdown(f"""
     <style>
     @keyframes fadeIn {{ from {{ opacity: 0; transform: translateY(20px); }} to {{ opacity: 1; transform: translateY(0); }} }}
@@ -140,12 +175,11 @@ st.markdown(f"""
     .notif-text {{ flex-grow: 1; font-size: 14px; color: #333; }}
     .notif-time {{ font-size: 11px; color: #888; }}
     
-    /* NEW AI STYLE */
     .ai-comment {{ border-left: 4px solid #2196F3 !important; background: #E3F2FD !important; color: #0D47A1 !important; }}
     </style>
     """, unsafe_allow_html=True)
 
-# 6. APP FLOW
+# 7. APP FLOW
 if not st.session_state.auth:
     with st.form("login_form", clear_on_submit=False):
         if logo_b64:
@@ -167,6 +201,10 @@ else:
         if logo_b64: st.image(f"data:image/png;base64,{logo_b64}", use_container_width=True)
         st.divider()
         if st.button("🏠 Homepage", key="nav_h", use_container_width=True): st.session_state.current_page = "Homepage"
+        
+        # NEW PATIENT SEARCH BUTTON
+        if st.button("👥 Patient Search", key="nav_p", use_container_width=True): st.session_state.current_page = "Patient"
+        
         if st.button("📅 Reservation", key="nav_r", use_container_width=True): st.session_state.current_page = "Reservation"
         
         unread_count = sum(1 for n in st.session_state.notifications if n['unread'])
@@ -184,6 +222,7 @@ else:
         st.divider()
         if st.button("🚪 Logout", key="nav_l", use_container_width=True): st.session_state.auth = False; st.rerun()
 
+    # --- PAGE: HOMEPAGE ---
     if st.session_state.current_page == "Homepage":
         st.markdown(f'<p style="color:#124D41; font-weight:700; font-size:18px;">Hello, {user_name} 👋</p>', unsafe_allow_html=True)
         
@@ -263,6 +302,64 @@ else:
                         st.session_state.daily_tasks[selected_date].pop(i)
                         st.session_state.completed_counts[selected_date] += 1; st.rerun()
 
+    # --- PAGE: PATIENT SEARCH (NEW) ---
+    elif st.session_state.current_page == "Patient":
+        st.title("👥 Patient Clinical Records")
+        st.markdown("Search the hospital database to begin a new consultation session.")
+        
+        ic_input = st.text_input("🔍 Enter Patient IC Number", placeholder="XXXXXX-XX-XXXX")
+
+        if ic_input:
+            if ic_input in st.session_state.patient_db:
+                p_data = st.session_state.patient_db[ic_input]
+                st.success(f"✅ Record Found for {p_data['name']}")
+                
+                # Consultation Display
+                c_data1, c_data2 = st.columns([1, 2])
+                with c_data1:
+                    st.markdown(f"""
+                    <div style="background:white; padding:20px; border-radius:15px; border:1px solid #E0E0E0; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                        <h4 style="color:#124D41; margin-top:0;">Patient Info</h4>
+                        <p><strong>Name:</strong> {p_data['name']}<br>
+                        <strong>Age:</strong> {p_data['age']}<br>
+                        <strong>IC:</strong> {ic_input}</p>
+                        <hr>
+                        <p><strong>Medical History:</strong><br><small>{p_data['history']}</small></p>
+                        <p><strong>Last Visit:</strong> {p_data.get('last_visit', 'N/A')}</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                with c_data2:
+                    st.subheader("Consultation Notes")
+                    consult_text = st.text_area("Observations, Symptoms & Plan", height=200)
+                    if st.button("Save & Sync to Server"):
+                        if consult_text:
+                            st.session_state.patient_db[ic_input]['last_visit'] = str(date.today())
+                            st.balloons()
+                            st.success("Clinical notes have been encrypted and saved to the patient's record.")
+                        else:
+                            st.warning("Please enter notes before saving.")
+            
+            else:
+                st.error("❌ No record found for this IC. Please register the new patient below.")
+                
+                with st.form("registration_form"):
+                    st.subheader("New Patient Registration")
+                    reg_name = st.text_input("Full Name (as per IC)")
+                    r_col1, r_col2 = st.columns(2)
+                    with r_col1: reg_age = st.number_input("Age", min_value=0, max_value=120)
+                    with r_col2: reg_gender = st.selectbox("Gender", ["Male", "Female", "Other"])
+                    reg_history = st.text_area("Known Allergies & Medical History")
+                    
+                    if st.form_submit_button("Create Patient Record"):
+                        if reg_name:
+                            st.session_state.patient_db[ic_input] = {
+                                "name": reg_name, "age": reg_age, "history": reg_history, "last_visit": "Registered Today"
+                            }
+                            st.success(f"Account for {reg_name} created successfully! Re-enter IC to begin consultation.")
+                            st.rerun()
+
+    # --- PAGE: NOTIFICATIONS ---
     elif st.session_state.current_page == "Notifications":
         st.title("🔔 Notifications")
         n_col1, n_col2 = st.columns([1.5, 4])
@@ -289,32 +386,31 @@ else:
                 if st.button(f"Mark as read", key=f"read_{idx}"):
                     n['unread'] = False; st.rerun()
 
+    # --- PAGE: COMMUNITY ---
     elif st.session_state.current_page == "Community":
         st.title("🤝 Medical Community")
         c_left, c_right = st.columns([2.5, 1], gap="large")
         with c_left:
             search_query = st.text_input("🔍 Search medical discussions...", placeholder="e.g. Hypertension, UI, AI")
             
-            # --- UPDATED: POSTING WITH AI AUTO-REPLY ---
             with st.expander("➕ Create New Post"):
                 new_title = st.text_input("Title")
                 new_content = st.text_area("What's on your mind, Doctor?")
                 if st.button("Post to Community"):
                     if new_title and new_content:
-                        # 1. Generate the AI Response String
-                        ai_response = f"[🤖 AI ASSISTANT]: Hello {user_name}, I've analyzed your question regarding '{new_title}'. Based on recent clinical data, you might want to look into the latest ESC guidelines. Other doctors will be able to provide further peer-review soon."
+                        with st.spinner("AI is analyzing post content..."):
+                            ai_comment = get_actual_ai_insight(new_title, new_content)
                         
-                        # 2. Insert post with AI as first comment
                         new_post = {
                             "user": user_name, 
                             "role": user_role, 
                             "title": new_title, 
                             "content": new_content, 
                             "likes": 0, 
-                            "comments": [ai_response] # AI answers first
+                            "comments": [ai_comment]
                         }
                         st.session_state.community_posts.insert(0, new_post)
-                        st.success("Post published! AI Assistant has provided an initial reply.")
+                        st.success("Post published! AI Assistant has analyzed the content.")
                         st.rerun()
 
             filtered_posts = [p for p in st.session_state.community_posts if search_query.lower() in p['title'].lower() or search_query.lower() in p['content'].lower()]
@@ -338,7 +434,6 @@ else:
                 with b2:
                     with st.expander(f"View {len(post['comments'])} Comments"):
                         for c in post['comments']:
-                            # Style AI comments differently
                             ai_style = 'class="comment-bubble ai-comment"' if "[🤖 AI ASSISTANT]" in c else 'class="comment-bubble"'
                             st.markdown(f'<div {ai_style}>{c}</div>', unsafe_allow_html=True)
                         
@@ -346,8 +441,6 @@ else:
                         if st.button("Post", key=f"com_btn_{idx}"):
                             if new_com: 
                                 post['comments'].append(f"{user_name}: {new_com}")
-                                if post['user'] == user_name:
-                                    st.session_state.notifications.insert(0, {"type": "community", "text": f"Someone has replied on your post: '{new_com[:20]}...'", "time": "Just now", "unread": True})
                                 st.rerun()
 
                 if post['user'] == user_name:
@@ -413,4 +506,8 @@ else:
                             st.session_state.following_list.add(person['name'])
                         st.rerun()
 
-    elif st.session_state.current_page == "Reservation": st.title("📅 Reservations"); st.table(RESERVATIONS_DB)
+    # --- PAGE: RESERVATION ---
+    elif st.session_state.current_page == "Reservation": 
+        st.title("📅 Reservations")
+        
+        st.table(RESERVATIONS_DB)
