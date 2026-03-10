@@ -94,7 +94,7 @@ if "daily_tasks" not in st.session_state:
 if "completed_counts" not in st.session_state:
     st.session_state.completed_counts = {}
 
-# 5. CSS (PRESERVED + NEW NOTIFICATION STYLES)
+# 5. CSS (PRESERVED + FIXED NOTIFICATION STYLES)
 st.markdown(f"""
     <style>
     @keyframes fadeIn {{ from {{ opacity: 0; transform: translateY(20px); }} to {{ opacity: 1; transform: translateY(0); }} }}
@@ -129,17 +129,17 @@ st.markdown(f"""
     .alert-card {{ background: #FFF5F5; border-left: 5px solid #E57373; padding: 15px; border-radius: 12px; margin-bottom: 10px; }}
     .todo-item {{ background:#F1F8E9; padding:12px; border-radius:12px; border-left:5px solid #93C572; margin-bottom:10px; }}
 
-    /* NOTIFICATION SPECIFIC CSS */
-    .notif-card {
+    /* NOTIFICATION SPECIFIC CSS (FIXED BRACES) */
+    .notif-card {{
         background: white; border-radius: 12px; padding: 15px; margin-bottom: 10px;
         border-left: 5px solid #E0E0E0; display: flex; align-items: center; gap: 15px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: transform 0.2s ease;
-    }
-    .notif-card:hover { transform: translateX(5px); }
-    .notif-unread { border-left-color: #93C572 !important; background: #F9FFF9; }
-    .notif-icon { font-size: 20px; }
-    .notif-text { flex-grow: 1; font-size: 14px; color: #333; }
-    .notif-time { font-size: 11px; color: #888; }
+    }}
+    .notif-card:hover {{ transform: translateX(5px); }}
+    .notif-unread {{ border-left-color: #93C572 !important; background: #F9FFF9; }}
+    .notif-icon {{ font-size: 20px; }}
+    .notif-text {{ flex-grow: 1; font-size: 14px; color: #333; }}
+    .notif-time {{ font-size: 11px; color: #888; }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -167,7 +167,7 @@ else:
         if st.button("🏠 Homepage", key="nav_h", use_container_width=True): st.session_state.current_page = "Homepage"
         if st.button("📅 Reservation", key="nav_r", use_container_width=True): st.session_state.current_page = "Reservation"
         
-        # UPDATED: Replaced Messages with Notifications + Unread Counter
+        # Sidebar: Notifications Label
         unread_count = sum(1 for n in st.session_state.notifications if n['unread'])
         btn_label = f"🔔 Notifications ({unread_count})" if unread_count > 0 else "🔔 Notifications"
         if st.button(btn_label, key="nav_n", use_container_width=True): st.session_state.current_page = "Notifications"
@@ -249,7 +249,7 @@ else:
                         st.session_state.daily_tasks[selected_date].pop(i)
                         st.session_state.completed_counts[selected_date] += 1; st.rerun()
 
-    # NEW PAGE: Notifications View
+    # NOTIFICATIONS PAGE
     elif st.session_state.current_page == "Notifications":
         st.title("🔔 Notifications")
         if st.button("Clear all read notifications"):
@@ -309,7 +309,6 @@ else:
                         if st.button("Post", key=f"com_btn_{idx}"):
                             if new_com: 
                                 post['comments'].append(new_com)
-                                # SIMULATED NOTIFICATION TRIGGER
                                 if post['user'] == user_name:
                                     st.session_state.notifications.insert(0, {"type": "community", "text": f"Someone has replied on your post: '{new_com[:20]}...'", "time": "Just now", "unread": True})
                                 st.rerun()
