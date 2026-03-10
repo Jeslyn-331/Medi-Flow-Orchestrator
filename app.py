@@ -139,6 +139,9 @@ st.markdown(f"""
     .notif-icon {{ font-size: 20px; }}
     .notif-text {{ flex-grow: 1; font-size: 14px; color: #333; }}
     .notif-time {{ font-size: 11px; color: #888; }}
+    
+    /* NEW AI STYLE */
+    .ai-comment {{ border-left: 4px solid #2196F3 !important; background: #E3F2FD !important; color: #0D47A1 !important; }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -184,7 +187,6 @@ else:
     if st.session_state.current_page == "Homepage":
         st.markdown(f'<p style="color:#124D41; font-weight:700; font-size:18px;">Hello, {user_name} 👋</p>', unsafe_allow_html=True)
         
-        # --- AUTOMATED LAB RESULT SIMULATOR ---
         with st.expander("🛠️ Clinical Simulation Tools"):
             if st.button("📥 Simulate Incoming Lab Results"):
                 new_notif = {
@@ -263,19 +265,16 @@ else:
 
     elif st.session_state.current_page == "Notifications":
         st.title("🔔 Notifications")
-        
         n_col1, n_col2 = st.columns([1.5, 4])
         with n_col1:
             if st.button("✔️ Mark All as Read", use_container_width=True):
-                for n in st.session_state.notifications:
-                    n['unread'] = False
+                for n in st.session_state.notifications: n['unread'] = False
                 st.rerun()
         with n_col2:
             if st.button("🗑️ Clear Read Notifications", use_container_width=True):
                 st.session_state.notifications = [n for n in st.session_state.notifications if not (n['unread'] == False)]
                 st.rerun()
         st.divider()
-
         for idx, n in enumerate(st.session_state.notifications):
             unread_class = "notif-unread" if n['unread'] else ""
             icon = "💬" if n['type'] == "community" else "🩺"
@@ -295,13 +294,28 @@ else:
         c_left, c_right = st.columns([2.5, 1], gap="large")
         with c_left:
             search_query = st.text_input("🔍 Search medical discussions...", placeholder="e.g. Hypertension, UI, AI")
+            
+            # --- UPDATED: POSTING WITH AI AUTO-REPLY ---
             with st.expander("➕ Create New Post"):
                 new_title = st.text_input("Title")
                 new_content = st.text_area("What's on your mind, Doctor?")
                 if st.button("Post to Community"):
                     if new_title and new_content:
-                        new_post = {"user": user_name, "role": user_role, "title": new_title, "content": new_content, "likes": 0, "comments": []}
-                        st.session_state.community_posts.insert(0, new_post); st.success("Post published!"); st.rerun()
+                        # 1. Generate the AI Response String
+                        ai_response = f"[🤖 AI ASSISTANT]: Hello {user_name}, I've analyzed your question regarding '{new_title}'. Based on recent clinical data, you might want to look into the latest ESC guidelines. Other doctors will be able to provide further peer-review soon."
+                        
+                        # 2. Insert post with AI as first comment
+                        new_post = {
+                            "user": user_name, 
+                            "role": user_role, 
+                            "title": new_title, 
+                            "content": new_content, 
+                            "likes": 0, 
+                            "comments": [ai_response] # AI answers first
+                        }
+                        st.session_state.community_posts.insert(0, new_post)
+                        st.success("Post published! AI Assistant has provided an initial reply.")
+                        st.rerun()
 
             filtered_posts = [p for p in st.session_state.community_posts if search_query.lower() in p['title'].lower() or search_query.lower() in p['content'].lower()]
             for idx, post in enumerate(filtered_posts):
@@ -324,11 +338,14 @@ else:
                 with b2:
                     with st.expander(f"View {len(post['comments'])} Comments"):
                         for c in post['comments']:
-                            st.markdown(f'<div class="comment-bubble">{c}</div>', unsafe_allow_html=True)
+                            # Style AI comments differently
+                            ai_style = 'class="comment-bubble ai-comment"' if "[🤖 AI ASSISTANT]" in c else 'class="comment-bubble"'
+                            st.markdown(f'<div {ai_style}>{c}</div>', unsafe_allow_html=True)
+                        
                         new_com = st.text_input("Add comment...", key=f"com_in_{idx}", label_visibility="collapsed")
                         if st.button("Post", key=f"com_btn_{idx}"):
                             if new_com: 
-                                post['comments'].append(new_com)
+                                post['comments'].append(f"{user_name}: {new_com}")
                                 if post['user'] == user_name:
                                     st.session_state.notifications.insert(0, {"type": "community", "text": f"Someone has replied on your post: '{new_com[:20]}...'", "time": "Just now", "unread": True})
                                 st.rerun()
