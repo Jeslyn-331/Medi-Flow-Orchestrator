@@ -311,55 +311,99 @@ else:
         with ps_col2:
             st.markdown("<br>", unsafe_allow_html=True)
             if st.button("Clear Search", use_container_width=True):
+                st.session_state.consult_active = False
                 st.rerun()
 
         if ic_input:
             if ic_input in st.session_state.patient_db:
                 p_data = st.session_state.patient_db[ic_input]
-                st.success(f"✅ Record Found for {p_data['name']}")
                 
-                # --- UPDATED: Vitals & BMI Calculation ---
+                # --- Vitals & BMI Calculation ---
                 h_m = p_data.get('height', 0) / 100
                 w_kg = p_data.get('weight', 0)
                 bmi = round(w_kg / (h_m**2), 1) if h_m > 0 else 0
                 
-                c_data1, c_data2 = st.columns([1, 2])
+                # --- UI: Patient Info & Body Map ---
+                c_data1, c_data2 = st.columns([3, 1])
                 with c_data1:
                     st.markdown(f"""
                     <div style="background:white; padding:20px; border-radius:15px; border:1px solid #E0E0E0; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-                        <h4 style="color:#124D41; margin-top:0;">Patient Info</h4>
-                        <p><strong>Name:</strong> {p_data['name']}<br>
-                        <strong>Age:</strong> {p_data['age']} yrs<br>
-                        <strong>DOB:</strong> {p_data.get('dob', 'N/A')}<br>
-                        <strong>IC:</strong> {ic_input}</p>
-                        <hr>
-                        <p style="margin-bottom:5px;"><strong>Vitals & Physical:</strong></p>
-                        <div style="display:flex; justify-content:space-between; background:#F1F8E9; padding:10px; border-radius:10px; font-size:13px;">
-                            <span>H: <b>{p_data.get('height', '--')} cm</b></span>
-                            <span>W: <b>{p_data.get('weight', '--')} kg</b></span>
-                            <span style="color:#2E7D32;">BMI: <b>{bmi}</b></span>
+                        <table style="width:100%; border-collapse: collapse; line-height: 1.8;">
+                            <tr style="border-bottom:1px solid #EEE;"><td><b>IC:</b></td><td>{ic_input}</td></tr>
+                            <tr style="border-bottom:1px solid #EEE;"><td><b>Name:</b></td><td>{p_data['name']}</td></tr>
+                            <tr style="border-bottom:1px solid #EEE;"><td><b>Address:</b></td><td>12, Jalan Ampang, Kuala Lumpur</td></tr>
+                            <tr style="border-bottom:1px solid #EEE;"><td><b>Weight:</b></td><td>{w_kg} kg</td></tr>
+                            <tr style="border-bottom:1px solid #EEE;"><td><b>Height:</b></td><td>{p_data.get('height')} cm</td></tr>
+                            <tr><td><b>Allergy:</b></td><td><span style="color:red; font-weight:bold;">{p_data['history']}</span></td></tr>
+                        </table>
+                        <div style="margin-top:10px; background:#F1F8E9; padding:10px; border-radius:10px; text-align:center;">
+                            <span style="color:#2E7D32;"><b>BMI: {bmi}</b></span>
                         </div>
-                        <hr>
-                        <p><strong>Medical History:</strong><br><small>{p_data['history']}</small></p>
-                        <p><strong>Last Visit:</strong> {p_data.get('last_visit', 'N/A')}</p>
                     </div>
                     """, unsafe_allow_html=True)
                 
                 with c_data2:
+                    st.markdown("""
+                    <div style="background:#F1F8E9; height:260px; border-radius:15px; border:1px solid #E1EDD8; display:flex; align-items:center; justify-content:center;">
+                        <img src="https://cdn-icons-png.flaticon.com/512/2865/2865913.png" width="90" style="opacity:0.4;">
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                # --- UI: Record History Table ---
+                st.subheader("Record:")
+                if 'history_logs' not in p_data: p_data['history_logs'] = []
+                st.dataframe(p_data['history_logs'], use_container_width=True, hide_index=True)
+
+                # --- New Consultation Section ---
+                if not st.session_state.get('consult_active'):
+                    if st.button("+ New", type="secondary"):
+                        st.session_state.consult_active = True
+                        st.rerun()
+
+                if st.session_state.get('consult_active'):
+                    st.divider()
                     st.subheader("Consultation Notes")
-                    consult_text = st.text_area("Observations, Symptoms & Plan", height=200)
-                    if st.button("Save & Sync to Server"):
-                        if consult_text:
-                            st.session_state.patient_db[ic_input]['last_visit'] = str(date.today())
-                            st.balloons()
-                            st.success("Clinical notes have been encrypted and saved to the patient's record.")
-                        else:
-                            st.warning("Please enter notes before saving.")
+                    with st.container(border=True):
+                        consult_text = st.text_area("Observations, Symptoms & Plan", height=200)
+                        
+                        col_ai, col_save = st.columns(2)
+                        with col_ai:
+                            if st.button("Analyze with AI 🤖"):
+                                notes_low = consult_text.lower()
+                                st.session_state.temp_meds = []
+                                st.session_state.temp_tests = []
+                                if "fever" in notes_low: st.session_state.temp_meds.append("Paracetamol 500mg")
+                                if "chest" in notes_low: st.session_state.temp_tests.append("Chest X-Ray")
+                        
+                        if 'temp_meds' in st.session_state:
+                            final_meds = [m for m in st.session_state.temp_meds if st.checkbox(m, value=True)]
+                            
+                            act1, act2 = st.columns(2)
+                            with act1:
+                                if st.button("🚨 Create Referral"):
+                                    st.session_state.referral_draft = {"ic": ic_input, "reason": consult_text}
+                                    st.session_state.current_page = "Reservation"
+                                    st.rerun()
+                            with act2:
+                                if st.button("Save & Sync to Server", type="primary"):
+                                    new_log = {
+                                        "No": len(p_data['history_logs']) + 1,
+                                        "Date": str(date.today()),
+                                        "Condition": consult_text[:20] + "...",
+                                        "Test": ", ".join(st.session_state.temp_tests) if st.session_state.temp_tests else "None",
+                                        "Medicine": ", ".join(final_meds) if final_meds else "None",
+                                        "Dr": "Dr. John Doe",
+                                        "Status": "Completed"
+                                    }
+                                    p_data['history_logs'].append(new_log)
+                                    p_data['last_visit'] = str(date.today())
+                                    st.session_state.consult_active = False
+                                    st.balloons()
+                                    st.rerun()
             
             else:
                 st.error("❌ No record found for this IC. Please register the new patient below.")
                 
-                # --- UPDATED: Registration Form with Auto-Age & Birthdate ---
                 with st.form("registration_form"):
                     st.subheader("New Patient Registration")
                     reg_name = st.text_input("Full Name (as per IC)")
@@ -367,7 +411,6 @@ else:
                     r_col1, r_col2 = st.columns(2)
                     with r_col1:
                         reg_dob = st.date_input("Birthdate", min_value=date(1900, 1, 1), max_value=date.today(), value=date(2000, 1, 1))
-                        # Logic: Age calculation
                         today = date.today()
                         calc_age = today.year - reg_dob.year - ((today.month, today.day) < (reg_dob.month, reg_dob.day))
                         st.caption(f"System will record age as: {calc_age}")
@@ -392,10 +435,42 @@ else:
                                 "height": reg_height,
                                 "weight": reg_weight,
                                 "history": reg_history, 
-                                "last_visit": "Registered Today"
+                                "last_visit": "Registered Today",
+                                "history_logs": []
                             }
-                            st.success(f"Account for {reg_name} created successfully! Re-enter IC to begin consultation.")
+                            st.success(f"Account for {reg_name} created successfully!")
                             st.rerun()
+
+    # --- PAGE: NOTIFICATIONS ---
+    elif st.session_state.current_page == "Notifications":
+        st.title("🔔 Notifications")
+        n_col1, n_col2 = st.columns([1.5, 4])
+        with n_col1:
+            if st.button("✔️ Mark All as Read", use_container_width=True):
+                for n in st.session_state.notifications: n['unread'] = False
+                st.rerun()
+        with n_col2:
+            if st.button("🗑️ Clear Read Notifications", use_container_width=True):
+                st.session_state.notifications = [n for n in st.session_state.notifications if n['unread']]
+                st.rerun()
+        
+        st.divider()
+        for idx, n in enumerate(st.session_state.notifications):
+            unread_style = "border-left: 5px solid #124D41; background: #F9FFF9;" if n['unread'] else "background: white;"
+            icon = "💬" if n['type'] == "community" else "🩺"
+            st.markdown(f"""
+                <div style="padding:15px; border-radius:10px; margin-bottom:10px; border:1px solid #EEE; display:flex; align-items:center; {unread_style}">
+                    <div style="font-size:24px; margin-right:15px;">{icon}</div>
+                    <div style="flex-grow:1;">
+                        <div style="font-size:14px; color:#333;">{n['text']}</div>
+                        <div style="font-size:11px; color:#999;">{n['time']}</div>
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
+            if n['unread']:
+                if st.button(f"Mark as read", key=f"read_{idx}"):
+                    n['unread'] = False
+                    st.rerun()
 
     # --- PAGE: NOTIFICATIONS ---
     elif st.session_state.current_page == "Notifications":
