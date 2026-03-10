@@ -58,6 +58,20 @@ DOCTOR_BIO = {
     ]
 }
 
+# Load user database
+try:
+    user_db = pd.read_csv("User.csv")
+except:
+    user_db = pd.DataFrame(columns=["Username", "Password"])
+
+# Login validation function
+def validate_login(username, password):
+    user = user_db[
+        (user_db["Username"] == username) &
+        (user_db["Password"] == password)
+    ]
+    return not user.empty
+    
 # Initial Post Database
 if "community_posts" not in st.session_state:
     st.session_state.community_posts = [
@@ -190,8 +204,12 @@ if not st.session_state.auth:
         u = st.text_input("ID", placeholder="Enter ID", label_visibility="collapsed")
         p = st.text_input("Key", type="password", placeholder="Security Key", label_visibility="collapsed")
         if st.form_submit_button("AUTHENTICATE SYSTEM"):
-            if u == "doctor1" and p == "mediflow2026":
-                st.session_state.auth = True; st.rerun()
+    if validate_login(u, p):
+        st.session_state.auth = True
+        st.success("Login successful")
+        st.rerun()
+    else:
+        st.error("Invalid ID or Security Key")
 else:
     today_str = date.today().strftime("%Y-%m-%d")
     current_tasks = st.session_state.daily_tasks.get(today_str, [])
