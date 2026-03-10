@@ -696,6 +696,6 @@ else:
                     }
                 )
 
-        else:
-            # Fallback UX before search
-            st.info("Please use the 'Referral Target' form on the left to locate specialist availability.")
+            else:
+                # Fallback UX before search
+                st.info("Please use the 'Referral Target' form on the left to locate specialist availability.")
