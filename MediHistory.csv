@@ -1,6 +1,6 @@
 ﻿ID,Date,Condition,Test,Medicine,Dr,Status
-M001,2026-02-20,Gastritis,Physical Exam,Gaviscon 10ml,Dr. Robert Chen,Pending
-M002,2026-03-01,General Checkup,Vitals Check,Multivitamins,Dr. Sarah Smith,Pending
-M003,2026-03-05,Muscle Strain,Flexibility Test,Deep Heat / Panadol,Dr. Phang Lee You,Pending
-M004,2026-03-08,URTI (Cold),Lungs Auscultation,Cough Syrup / Paracetamol,Dr. Sarah Smith,Pending
-M006,2026-03-09,Allergic Rhinitis,None,Zyrtec 10mg,Dr. Robert Chen,Pending
+M001,2026-01-05,Common Fever,Temperature Check,Paracetamol 500mg,Dr. Robert Chen,Pending
+M002,2026-02-15,Routine Follow-up,Blood Pressure Check,Amlodipine 5mg,Dr. Sarah Smith,Pending
+M003,2026-01-20,Blood Sugar Review,Fasteding Blood Glucose,Metformin 500mg,Dr. Phang Lee You,Pending
+M004,2026-03-05,Mild Asthma Flare,Peak Flow Test,Salbutamol Inhaler,Dr. Robert Chen,Pending
+M005,2026-02-28,Tiredness (Anemia),Full Blood Count,Iron Supplements,Dr. Sarah Smith,Pending
