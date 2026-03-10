@@ -85,7 +85,7 @@ if "daily_tasks" not in st.session_state:
 if "completed_counts" not in st.session_state:
     st.session_state.completed_counts = {}
 
-# 5. CSS (PRESERVED + NEW ANIMATIONS)
+# 5. CSS (PRESERVED + HEARTBEAT ANIMATION)
 st.markdown(f"""
     <style>
     /* ANIMATION KEYFRAMES */
@@ -99,17 +99,30 @@ st.markdown(f"""
         to {{ opacity: 1; transform: translateX(0); }}
     }}
 
+    @keyframes heartbeat {{
+        0% {{ transform: scale(1); }}
+        15% {{ transform: scale(1.08); }}
+        30% {{ transform: scale(1); }}
+        45% {{ transform: scale(1.08); }}
+        100% {{ transform: scale(1); }}
+    }}
+
     /* APPLYING ANIMATIONS */
-    [data-testid="stForm"], .profile-card, .stat-box {{
+    [data-testid="stForm"], .profile-card {{
         animation: fadeIn 0.8s ease-out forwards;
+    }}
+    
+    .stat-box {{
+        animation: fadeIn 0.8s ease-out forwards;
+    }}
+
+    .pulse-alert {{
+        animation: heartbeat 1.5s ease-in-out infinite;
+        box-shadow: 0 0 15px rgba(229, 115, 115, 0.4);
     }}
 
     .todo-item, .alert-card {{
         animation: slideRight 0.5s ease-out forwards;
-    }}
-
-    [data-testid="stSidebar"] {{
-        animation: slideRight 0.6s ease-in-out;
     }}
 
     /* PREVIOUS STYLES (PRESERVED) */
@@ -130,7 +143,7 @@ st.markdown(f"""
         background: #F1F8E9; 
         border-radius: 20px; padding: 20px; text-align: center; border: 1px solid #E1EDD8;
         height: 120px; display: flex; flex-direction: column; justify-content: center; align-items: center;
-        transition: transform 0.3s ease; /* Hover effect */
+        transition: transform 0.3s ease;
     }}
     .stat-box:hover {{ transform: scale(1.05); }}
     .stat-val {{ font-size: 24px; font-weight: 800; color: #124D41; margin: 0; }}
@@ -162,14 +175,12 @@ if not st.session_state.auth:
             if u == "doctor1" and p == "mediflow2026":
                 st.session_state.auth = True; st.rerun()
 else:
-    # --- PHYSICIAN LOGIC ---
     today_str = date.today().strftime("%Y-%m-%d")
     current_tasks = st.session_state.daily_tasks.get(today_str, [])
     
     count_patients = sum(1 for task in current_tasks if "patient" in task.lower() or "consult" in task.lower())
     count_followups = sum(1 for task in current_tasks if "follow" in task.lower() or "review" in task.lower())
 
-    # SIDEBAR
     with st.sidebar:
         if logo_b64: st.image(f"data:image/png;base64,{logo_b64}", use_container_width=True)
         st.divider()
@@ -184,19 +195,19 @@ else:
     if st.session_state.current_page == "Homepage":
         st.markdown(f'<p style="color:#124D41; font-weight:700; font-size:18px;">Hello, {user_name} 👋</p>', unsafe_allow_html=True)
 
-        # UPDATED STATS ROW
         s1, s2, s3, s4 = st.columns(4)
         with s1: st.markdown(f'<div class="stat-box"><p class="stat-lbl">Consultations</p><p class="stat-val">{count_patients:02d}</p></div>', unsafe_allow_html=True)
         with s2: st.markdown(f'<div class="stat-box"><p class="stat-lbl">Follow-ups</p><p class="stat-val">{count_followups:02d}</p></div>', unsafe_allow_html=True)
         with s3:
             alert_count = len(st.session_state.urgent_patients)
             color = "#E57373" if alert_count > 0 else "#93C572"
-            st.markdown(f'<div class="stat-box" style="border-color:{color};"><p class="stat-lbl">Urgent Alerts</p><p class="stat-val" style="color:{color};">{alert_count:02d}</p></div>', unsafe_allow_html=True)
+            # Logic to add pulse class ONLY if alert_count > 0
+            pulse_class = "pulse-alert" if alert_count > 0 else ""
+            st.markdown(f'<div class="stat-box {pulse_class}" style="border-color:{color};"><p class="stat-lbl">Urgent Alerts</p><p class="stat-val" style="color:{color};">{alert_count:02d}</p></div>', unsafe_allow_html=True)
             if st.button("Manage Alerts", key="manage_alerts", use_container_width=True):
                 st.session_state.show_alerts = not st.session_state.show_alerts; st.rerun()
         with s4: st.markdown('<div class="stat-box"><p class="stat-lbl">Clinic Health</p><p class="stat-val">98%</p></div>', unsafe_allow_html=True)
         
-        # REST OF THE CODE (PRESERVED)
         if st.session_state.show_alerts:
             st.markdown("#### 🚨 Active Urgent Cases")
             if not st.session_state.urgent_patients: st.success("All clear!")
