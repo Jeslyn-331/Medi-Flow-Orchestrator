@@ -545,9 +545,9 @@ else:
                         st.rerun()
 
 # --- INDENTATION LEVEL matching other page routing elifs ---
-elif st.session_state.current_page == "Reservation":
-    st.title("📅 Internal Specialist Referrals")
-    st.markdown("Use this panel to find and book appointments with specialized internal clinical departments.")
+    elif st.session_state.current_page == "Reservation":
+        st.title("📅 Internal Specialist Referrals")
+        st.markdown("Use this panel to find and book appointments with specialized internal clinical departments.")
 
     # --- 1. DATA INITIALIZATION (Mock Databases for Demonstration) ---
     # In a real SE project, this would be an API call or SQL query.
