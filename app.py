@@ -603,64 +603,81 @@ else:
             </div>
         """, unsafe_allow_html=True)
 
-        # --- DYNAMIC ACTION: Find Button Clicked ---
+        # --- PERSISTENCE LOGIC ---
+        # We save the search result in session state so it doesn't disappear when selecting a cell
         if submitted_find:
-            # Look up the selected doctor's profile for details
-            spec_profile = next((s for s in available_specialists if s["name"] == selected_spec_name), None)
+            st.session_state.active_spec_name = selected_spec_name
+            st.session_state.active_dept = selected_dept
+
+        # --- DYNAMIC ACTION: Display Booking Interface ---
+        if 'active_spec_name' in st.session_state:
+            # Re-fetch the profile based on the stored state
+            active_dept = st.session_state.active_dept
+            available_specs = st.session_state.clinic_specialists_db.get(active_dept, [])
+            spec_profile = next((s for s in available_specs if s["name"] == st.session_state.active_spec_name), None)
 
             if spec_profile:
-                st.subheader(f"Booking slots for {selected_spec_name}")
-                st.info(f"Targeting: {selected_dept} Department")
+                st.subheader(f"Booking slots for {st.session_state.active_spec_name}")
+                st.info(f"Targeting: {active_dept} Department")
                 
-                # C. Display Slots using interactive component (Table or dataframe)
+                # C. Display Slots using interactive dataframe
                 slots_df = pd.DataFrame(spec_profile["availability"], columns=["Available Time Slots"])
                 
-                # DISPLAY TABLE
-                # This component allows selection of a cell, which we use to trigger booking logic.
                 booking_table = st.dataframe(
                     slots_df, 
                     use_container_width=True, 
                     hide_index=True,
-                    on_select="rerun", # Trigger rerun to capture cell selection
+                    on_select="rerun", 
                     selection_mode="single-cell"
                 )
                 
-                # D. Interactivity: Booking Logic when cell is selected
-                # Capture the selected cell information
+                # D. Interactivity: Selection Logic
                 selection_info = booking_table.selection.cells
+                
+                # If a cell is selected, show the "Confirm Referral Details" from your mockup
                 if selection_info:
-                    selected_row_idx = selection_info[0][0] # Access row index of selected cell
-                    selected_time = slots_df.iloc[selected_row_idx, 0] # Get Time text
+                    selected_row_idx = selection_info[0][0]
+                    selected_time = slots_df.iloc[selected_row_idx, 0]
 
+                    # This is the block from your image
                     with st.expander("➕ Confirm Referral Details", expanded=True):
-                        st.markdown(f"Booking **{selected_time}** referral appointment with **{selected_spec_name}** ({selected_dept}).")
+                        st.markdown(f"Confirming this **{selected_time}** for specialist referral in **{active_dept}**.")
                         
-                        # Data Validation required: ensure a patient is currently active (loaded via Patient page)
-                        # We mock this constraint for SE students
-                        st.text_input("Ref. Active Patient IC (Mock)", value="950101-10-5543", disabled=True)
-                        ref_notes = st.text_area("Reason for Referral")
+                        st.text_input("Ref. Active Patient IC", value="950101-10-5543", disabled=True)
+                        ref_notes = st.text_area("Reason for Referral", placeholder="Enter clinical justification...")
 
-                        # CONFIRM BOOKING BUTTON (Must be unique key)
-                        if st.button("CONFIRM AND BOOK REFERRAL", key=f"book_{spec_profile['id']}_{selected_time}"):
+                        # CONFIRM BOOKING BUTTON
+                        if st.button("CONFIRM AND BOOK REFERRAL", key=f"book_{spec_profile['id']}_{selected_time}", type="primary"):
                             if ref_notes:
-                                # Create Referral Entry securely
                                 new_referral = {
                                     "Date_Booked": str(datetime.now().strftime("%Y-%m-%d")),
                                     "Time_Slot": selected_time,
-                                    "Department": selected_dept,
-                                    "Specialist": selected_spec_name,
-                                    "Ref_Patient_IC": "950101-10-5543", # Mock active patient
+                                    "Department": active_dept,
+                                    "Specialist": st.session_state.active_spec_name,
+                                    "Ref_Patient_IC": "950101-10-5543", 
                                     "Referral_Reason": ref_notes,
                                     "Booking_Status": "Confirmed"
                                 }
-                                # SAVE TO SESSION STATE
+                                # Save and Update
                                 st.session_state.referral_bookings_db.append(new_referral)
-                                # Clean up availbility (SE consideration: concurrency check)
                                 spec_profile["availability"].remove(selected_time)
+                                
+                                # Clear active search so view resets
+                                del st.session_state.active_spec_name
+                                
                                 st.success("✅ Referral booking confirmed and synced to M-FLO archive.")
-                                st.rerun() # Force top-down rerun to reset view
+                                st.rerun()
                             else:
                                 st.error("Please ensure the Referral Reason field is completed.")
+
+        # --- ARCHIVED REFERRALS (Shows if no active search or if history exists) ---
+        if st.session_state.referral_bookings_db and 'active_spec_name' not in st.session_state:
+            st.write("---")
+            st.subheader("Archived Referrals")
+            ref_df = pd.DataFrame(st.session_state.referral_bookings_db)
+            st.dataframe(ref_df, use_container_width=True, hide_index=True)
+        elif 'active_spec_name' not in st.session_state:
+            st.info("Please use the 'Referral Target' form on the left to locate specialist availability.")
 
         # --- ARCHIVED REFERRALS (Table display concept) ---
         elif st.session_state.referral_bookings_db:
