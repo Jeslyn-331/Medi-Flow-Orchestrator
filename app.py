@@ -36,6 +36,10 @@ if "community_posts" not in st.session_state:
         {"user": "u/Radiology_Pro", "title": "AI in Chest X-Rays", "content": "New algorithm for detecting small pleural effusions showing 98% accuracy.", "likes": 89, "comments": ["Is this FDA approved?"]}
     ]
 
+# NEW: Follower State
+if "following_list" not in st.session_state:
+    st.session_state.following_list = set()
+
 RESERVATIONS_DB = [
     {"Time": "09:00 AM", "Patient": "Alice Tan", "Status": "Confirmed"},
     {"Time": "11:30 AM", "Patient": "Bob Smith", "Status": "Pending"}
@@ -146,10 +150,17 @@ else:
         if logo_b64: st.image(f"data:image/png;base64,{logo_b64}", use_container_width=True)
         st.divider()
         if st.button("🏠 Homepage", key="nav_h", use_container_width=True): st.session_state.current_page = "Homepage"
-        if st.button("👥 Patients", key="nav_p", use_container_width=True): st.session_state.current_page = "Homepage"
         if st.button("📅 Reservation", key="nav_r", use_container_width=True): st.session_state.current_page = "Reservation"
         if st.button("✉️ Messages", key="nav_m", use_container_width=True): st.session_state.current_page = "Messages"
         if st.button("🤝 Community", key="nav_c", use_container_width=True): st.session_state.current_page = "Community"
+        
+        # --- NEW: Sidebar Following List ---
+        if st.session_state.following_list:
+            st.divider()
+            st.markdown("👨‍⚕️ **Following**")
+            for doc in st.session_state.following_list:
+                st.markdown(f"• <small>{doc}</small>", unsafe_allow_html=True)
+        
         st.divider()
         if st.button("🚪 Logout", key="nav_l", use_container_width=True): st.session_state.auth = False; st.rerun()
 
@@ -262,7 +273,7 @@ else:
                         if st.button("Post", key=f"com_btn_{idx}"):
                             if new_com: post['comments'].append(new_com); st.rerun()
                 
-                # EDIT & DELETE LOGIC
+                # PRESERVED: EDIT & DELETE LOGIC
                 if post['user'] == f"u/{user_name.replace(' ', '_')}":
                     with b3:
                         if st.button("Edit 📝", key=f"edit_btn_{idx}"):
@@ -296,15 +307,14 @@ else:
             for tag in trending: st.button(tag, use_container_width=True)
             st.divider()
             
-            # --- MODIFIED: TOP CONTRIBUTORS SECTION ---
             st.markdown("### 🏆 Top Contributors")
             contributors = [
-                {"name": "Dr. Phang Lee You", "role": "Senior Consultant Cardiologist", "karma": "2.4k"},
-                {"name": "Dr. Sarah Smith", "role": "Head of Radiology", "karma": "1.8k"},
-                {"name": "Dr. Robert Chen", "role": "Internal Medicine Specialist", "karma": "950"}
+                {"name": "Dr. Phang Lee You", "role": "Senior Consultant Cardiologist", "karma": "2.4k", "bio": "Expert in Percutaneous Coronary Intervention (PCI)."},
+                {"name": "Dr. Sarah Smith", "role": "Head of Radiology", "karma": "1.8k", "bio": "Specializes in neuroimaging and AI-driven screening."},
+                {"name": "Dr. Robert Chen", "role": "Internal Medicine Specialist", "karma": "950", "bio": "Focuses on geriatric chronic care and diabetes management."}
             ]
             
-            for person in contributors:
+            for i, person in enumerate(contributors):
                 st.markdown(f"""
                     <div style="background: white; border: 1px solid #EDEFF1; border-radius: 8px; padding: 10px; margin-bottom: 8px;">
                         <div style="font-weight: 700; color: #124D41; font-size: 14px;">{person['name']}</div>
@@ -312,6 +322,21 @@ else:
                         <div style="font-size: 11px; color: #93C572; font-weight: 800;">{person['karma']} Karma Points</div>
                     </div>
                 """, unsafe_allow_html=True)
+                
+                # --- UPDATED: Follow & View Profile ---
+                fb1, fb2 = st.columns(2)
+                with fb1:
+                    if st.button(f"Profile", key=f"p_btn_{i}", use_container_width=True):
+                        st.info(f"**Bio:** {person['bio']}")
+                with fb2:
+                    is_following = person['name'] in st.session_state.following_list
+                    btn_label = "Unfollow" if is_following else "Follow +"
+                    if st.button(btn_label, key=f"f_btn_{i}", use_container_width=True):
+                        if is_following:
+                            st.session_state.following_list.remove(person['name'])
+                        else:
+                            st.session_state.following_list.add(person['name'])
+                        st.rerun()
 
     elif st.session_state.current_page == "Reservation": st.title("📅 Reservations"); st.table(RESERVATIONS_DB)
     elif st.session_state.current_page == "Messages": st.title("✉️ Messages"); st.write(MESSAGES_DB)
