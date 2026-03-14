@@ -1,0 +1,152 @@
+{
+  "medications": [
+    {
+      "med_id": "MED001",
+      "name": "Paracetamol",
+      "generic_name": "Acetaminophen",
+      "category": "Analgesic",
+      "dosage": "500mg",
+      "form": "Tablet",
+      "common_uses": [
+        "Fever",
+        "Headache",
+        "Pain"
+      ],
+      "stock": 500
+    },
+    {
+      "med_id": "MED002",
+      "name": "Metformin",
+      "generic_name": "Metformin HCl",
+      "category": "Antidiabetic",
+      "dosage": "1000mg",
+      "form": "Tablet",
+      "common_uses": [
+        "Type 2 Diabetes"
+      ],
+      "stock": 300
+    },
+    {
+      "med_id": "MED003",
+      "name": "Lisinopril",
+      "generic_name": "Lisinopril",
+      "category": "ACE Inhibitor",
+      "dosage": "10mg",
+      "form": "Tablet",
+      "common_uses": [
+        "Hypertension",
+        "Heart Failure"
+      ],
+      "stock": 250
+    },
+    {
+      "med_id": "MED004",
+      "name": "Aspirin",
+      "generic_name": "Acetylsalicylic Acid",
+      "category": "Antiplatelet",
+      "dosage": "325mg",
+      "form": "Tablet",
+      "common_uses": [
+        "Cardiovascular Protection",
+        "Pain Relief"
+      ],
+      "stock": 600
+    },
+    {
+      "med_id": "MED005",
+      "name": "Salbutamol",
+      "generic_name": "Albuterol",
+      "category": "Bronchodilator",
+      "dosage": "100mcg",
+      "form": "Inhaler",
+      "common_uses": [
+        "Asthma",
+        "Bronchospasm"
+      ],
+      "stock": 150
+    },
+    {
+      "med_id": "MED006",
+      "name": "Amlodipine",
+      "generic_name": "Amlodipine Besylate",
+      "category": "Calcium Channel Blocker",
+      "dosage": "5mg",
+      "form": "Tablet",
+      "common_uses": [
+        "Hypertension",
+        "Angina"
+      ],
+      "stock": 200
+    },
+    {
+      "med_id": "MED007",
+      "name": "Omeprazole",
+      "generic_name": "Omeprazole",
+      "category": "Proton Pump Inhibitor",
+      "dosage": "20mg",
+      "form": "Capsule",
+      "common_uses": [
+        "GERD",
+        "Peptic Ulcer"
+      ],
+      "stock": 400
+    },
+    {
+      "med_id": "MED008",
+      "name": "Atorvastatin",
+      "generic_name": "Atorvastatin Calcium",
+      "category": "Statin",
+      "dosage": "20mg",
+      "form": "Tablet",
+      "common_uses": [
+        "High Cholesterol",
+        "Cardiovascular Disease"
+      ],
+      "stock": 180
+    },
+    {
+      "med_id": "MED009",
+      "name": "Propranolol",
+      "generic_name": "Propranolol HCl",
+      "category": "Beta Blocker",
+      "dosage": "40mg",
+      "form": "Tablet",
+      "common_uses": [
+        "Migraine",
+        "Hypertension"
+      ],
+      "stock": 220
+    },
+    {
+      "med_id": "MED010",
+      "name": "Ibuprofen",
+      "generic_name": "Ibuprofen",
+      "category": "NSAID",
+      "dosage": "400mg",
+      "form": "Tablet",
+      "common_uses": [
+        "Pain",
+        "Fever",
+        "Inflammation"
+      ],
+      "stock": 450
+    }
+  ],
+  "orders": [
+    {
+      "order_id": "ORD202603110001",
+      "date_created": "2026-03-11 23:05:11.359837",
+      "patient_ic": "050204-05-0284",
+      "doctor": "Dr. John Doe Ee",
+      "medicines": [
+        {
+          "med_id": "MED001",
+          "name": "Paracetamol",
+          "dosage": "500mg"
+        }
+      ],
+      "status": "Completed",
+      "notes": ""
+    }
+  ]
+}

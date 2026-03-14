@@ -1,0 +1,88 @@
+{
+  "patients": [
+    {
+      "ic": "050204-05-0284",
+      "name": "GAN WEI YING",
+      "dob": "2005-02-04",
+      "age": 21,
+      "gender": "Female",
+      "height": 152.0,
+      "weight": 44.0,
+      "allergies": "none",
+      "medical_history": "none",
+      "phone": "01120771201",
+      "email": "weiyinggan05@gmail.com",
+      "emergency_contact": "0129338395",
+      "address": "185\ntaman mawar",
+      "date_registered": "2026-03-11",
+      "last_visit": "2026-03-11",
+      "visit_history": [
+        {
+          "date": "2026-03-11",
+          "doctor": "Dr. John Doe Ee",
+          "diagnosis": "cough",
+          "notes": "fewer asthma",
+          "treatment": "paracetamol 3g"
+        },
+        {
+          "date": "2026-03-11",
+          "doctor": "Dr. John Doe Ee",
+          "diagnosis": "fewer",
+          "notes": "38 degree",
+          "treatment": "paracetamol 3g"
+        },
+        {
+          "date": "2026-03-11",
+          "doctor": "Dr. John Doe Ee",
+          "diagnosis": "123",
+          "notes": "123",
+          "treatment": "123"
+        }
+      ]
+    },
+    {
+      "ic": "030106-13-0709",
+      "name": "Chin Chia Poh",
+      "dob": "2003-01-06",
+      "age": 23,
+      "gender": "Male",
+      "height": 179.0,
+      "weight": 84.9,
+      "allergies": "no allergies",
+      "medical_history": "none",
+      "phone": "0133512645",
+      "email": "chincp1603@gmail.com",
+      "emergency_contact": "0123456789",
+      "address": "A2-4-7, Sungai Long Residence, Jalan Sungai Long, 43000, Selangir",
+      "date_registered": "2026-03-14",
+      "last_visit": "2026-03-14",
+      "visit_history": []
+    },
+    {
+      "ic": "070427-05-0427",
+      "name": "GAN JING HENG",
+      "dob": "2007-04-27",
+      "age": 18,
+      "gender": "Male",
+      "height": 165.0,
+      "weight": 45.0,
+      "allergies": "None",
+      "medical_history": "None",
+      "phone": "01120771201",
+      "email": "jingheng07@gmail.com",
+      "emergency_contact": "0129338395",
+      "address": "185\ntaman mawar",
+      "date_registered": "2026-03-14",
+      "last_visit": "2026-03-14",
+      "visit_history": [
+        {
+          "date": "2026-03-14",
+          "doctor": "Dr. John Doe Ee",
+          "diagnosis": "Diarrhea",
+          "notes": "Medicine",
+          "treatment": "give medicine"
+        }
+      ]
+    }
+  ]
+}
