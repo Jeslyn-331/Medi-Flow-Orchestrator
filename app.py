@@ -125,16 +125,6 @@ if "urgent_patients" not in st.session_state:
         {"Room": "209", "Name": "Robert Chen", "Issue": "Hypertensive Crisis (190/110)"}
     ]
 
-
-if "consultations_db" not in st.session_state:
-    st.session_state.consultations_db = []
-if "show_new_consult" not in st.session_state:
-    st.session_state.show_new_consult = False
-if "view_all_consult" not in st.session_state:
-    st.session_state.view_all_consult = False
-if "edit_consult_index" not in st.session_state:
-    st.session_state.edit_consult_index = None
-
 if "daily_tasks" not in st.session_state:
     st.session_state.daily_tasks = {str(date.today()): []}
 if "completed_counts" not in st.session_state:
@@ -232,29 +222,6 @@ else:
     # --- PAGE: HOMEPAGE ---
     if st.session_state.current_page == "Homepage":
         st.markdown(f'<p style="color:#124D41; font-weight:700; font-size:18px;">Hello, {user_name} 👋</p>', unsafe_allow_html=True)
-
-        # --- Consultation Dashboard ---
-        consultations = st.session_state.consultations_db
-
-        d1, d2, d3 = st.columns([1,1,3])
-
-        with d1:
-            st.markdown(f'''
-                <div class="stat-box">
-                    <p class="stat-lbl">Consultations</p>
-                    <p class="stat-val">{len(consultations):02d}</p>
-                </div>
-            ''', unsafe_allow_html=True)
-
-        with d2:
-            if st.button("➕ New Consultation", use_container_width=True):
-                st.session_state.show_new_consult = True
-                st.session_state.edit_consult_index = None
-
-        with d3:
-            if st.button("📑 View All Consultations", use_container_width=True):
-                st.session_state.view_all_consult = True
-
         
         with st.expander("🛠️ Clinical Simulation Tools"):
             if st.button("📥 Simulate Incoming Lab Results"):
@@ -268,7 +235,17 @@ else:
                 st.success("New Lab Result notification pushed!")
                 st.rerun()
 
-        # Removed old dashboard stats
+        s1, s2, s3, s4 = st.columns(4)
+        with s1: st.markdown(f'<div class="stat-box"><p class="stat-lbl">Consultations</p><p class="stat-val">{count_patients:02d}</p></div>', unsafe_allow_html=True)
+        with s2: st.markdown(f'<div class="stat-box"><p class="stat-lbl">Follow-ups</p><p class="stat-val">{count_followups:02d}</p></div>', unsafe_allow_html=True)
+        with s3:
+            alert_count = len(st.session_state.urgent_patients)
+            color = "#E57373" if alert_count > 0 else "#93C572"
+            pulse_class = "pulse-alert" if alert_count > 0 else ""
+            st.markdown(f'<div class="stat-box {pulse_class}" style="border-color:{color};"><p class="stat-lbl">Urgent Alerts</p><p class="stat-val" style="color:{color};">{alert_count:02d}</p></div>', unsafe_allow_html=True)
+            if st.button("Manage Alerts", key="manage_alerts", use_container_width=True):
+                st.session_state.show_alerts = not st.session_state.show_alerts; st.rerun()
+        with s4: st.markdown('<div class="stat-box"><p class="stat-lbl">Clinic Health</p><p class="stat-val">98%</p></div>', unsafe_allow_html=True)
         
         if st.session_state.show_alerts:
             st.markdown("#### 🚨 Active Urgent Cases")
@@ -300,67 +277,6 @@ else:
                 </div>
             """, unsafe_allow_html=True)
             
-        
-        # --- New / Edit Consultation ---
-        if st.session_state.show_new_consult:
-            st.subheader("Consultation Form")
-
-            edit_data = None
-            if st.session_state.edit_consult_index is not None:
-                edit_data = st.session_state.consultations_db[st.session_state.edit_consult_index]
-
-            with st.form("consult_form"):
-                patient = st.text_input("Patient Name", value=edit_data["patient"] if edit_data else "")
-                status = st.selectbox("Status", ["Ongoing","Completed"],
-                    index=0 if not edit_data else (0 if edit_data["status"]=="Ongoing" else 1))
-                duration = st.number_input("Duration (minutes)",5,180,value=edit_data["duration"] if edit_data else 15)
-                transcript = st.text_area("Consultation Transcript",
-                    value=edit_data["transcript"] if edit_data else "")
-
-                if st.form_submit_button("Save Consultation"):
-
-                    record = {
-                        "date": str(date.today()),
-                        "patient": patient,
-                        "status": status,
-                        "duration": duration,
-                        "transcript": transcript
-                    }
-
-                    if st.session_state.edit_consult_index is None:
-                        st.session_state.consultations_db.append(record)
-                    else:
-                        st.session_state.consultations_db[st.session_state.edit_consult_index] = record
-
-                    st.session_state.show_new_consult = False
-                    st.session_state.edit_consult_index = None
-                    st.success("Consultation saved.")
-                    st.rerun()
-
-        # --- View All Consultations ---
-        if st.session_state.view_all_consult:
-            st.subheader("Consultation Records")
-
-                if st.session_state.consultations_db:
-                    df = pd.DataFrame(st.session_state.consultations_db)
-                    st.dataframe(df[ ["date", "patient", "status", "duration", "transcript"] ], use_container_width=True, hide_index=True)
-
-                    with c6:
-                        if st.button("👁 View", key=f"view_cons_{i}"):
-                            st.info(row["transcript"])
-
-                        if st.button("✏ Edit", key=f"edit_cons_{i}"):
-                            st.session_state.edit_consult_index = i
-                            st.session_state.show_new_consult = True
-                            st.rerun()
-
-                        if st.button("🗑 Delete", key=f"del_cons_{i}"):
-                            st.session_state.consultations_db.pop(i)
-                            st.rerun()
-
-            else:
-                st.info("No consultations recorded yet.")
-
         with col_plan:
             st.markdown("### 📅 Calendar")
             selected_date = str(st.date_input("Schedule", label_visibility="collapsed"))
